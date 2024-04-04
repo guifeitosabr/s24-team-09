@@ -94,10 +94,14 @@ _[Select a Leader, who will make final decisions on the vision of the project; a
 ### Risks and Mitigation
 
 **Complexity of Integration:** Integrating multiple APIs (Chrome Tabs API, OpenAI API, etc.) and frameworks (React, Node.js) may lead to technical challenges and delays.
-**Mitigation Strategy:** We will try to mitigate this by breaking down our development tasks into smaller, manageable chunks, as well as conducting thorough research of each API/library before implementing anything involving it. We also plan to continually seek guidance from Professor Lumbroso and the TA’s for any technical issues encountered.
+
+**Mitigation Strategy:** We will try to mitigate this by breaking down our development tasks into smaller, manageable chunks, as well as conducting thorough research of each API/library before implementing anything involving it. We also plan to continually seek guidance from Professor Lumbroso and the TAs for any technical issues encountered.
+
 **API Limitations or Changes:** The APIs used in the extension may have limitations or undergo changes that could impact functionality or compatibility.
+
 **Mitigation Strategy:** We will do our best to Implement error handling and fallback mechanisms to handle API limitations or failures.
-**Security Vulnerabilities:** Inadequate handling of user data or authentication mechanisms may expose our extension to security risks such as data breaches or unauthorized access attempts
+**Security Vulnerabilities:** Inadequate handling of user data or authentication mechanisms may expose our extension to security risks such as data breaches or unauthorized access attempts.
+
 **Mitigation Strategy:** We will do our best to implement robust authentication and authorization mechanisms to protect user data.
 
 ### Milestones and Timeline
