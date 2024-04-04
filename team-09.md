@@ -61,11 +61,16 @@ Users will interact with a sidebar.
 
 ### API, Libraries, and Frameworks
 
-**Chrome Tabs API:** We plan to use this to actually interact with browser tabs, retrieving them and grouping them together. 
+**Chrome Tabs API:** We plan to use this to actually interact with browser tabs, retrieving them and grouping them together.
+
 **OpenAI API:** We plan to use this to figure out automated suggestions for groupings of tabs that users frequently visit.
-**Selenium:** We plan to use this library to figure out how to scrape login data from websites and log in for the user when opening tabs for sites that necessitate logging in (ex. Canvas). 
-**React:** We plan to use React for the front-end visualization of our application. 
-**Node.js:** We plan to use Node as the backend for our application (for data processing, user authentication, and integration with other APIs). 
+
+**Selenium:** We plan to use this library to figure out how to scrape login data from websites and log in for the user when opening tabs for sites that necessitate logging in (ex. Canvas).
+
+**React:** We plan to use React for the front-end visualization of our application.
+
+**Node.js:** We plan to use Node as the backend for our application (for data processing, user authentication, and integration with other APIs).
+
 **Google Analytics:** We plan to use Google Analytics to examine the user's time-spending information and generate insights through them.
 
 ### Data Storage
@@ -84,8 +89,6 @@ Each tab within a tab group should be represented by a model containing details 
 ## Project Management
 
 ### Collaboration and Task Allocation
-
-_[Select a Leader, who will make final decisions on the vision of the project; and a Manager, who will oversee the project management and ensure all team members have everything they need to contribute effectively. List the remaining team members and their roles.]_
 
 - **Leader:** Eshann (OpenAI API Integration)
 - **Manager:** Gui (Tab Grouping)
