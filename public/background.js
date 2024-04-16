@@ -9,12 +9,31 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// This function is called when a context menu item is clicked
-// See: https://developer.chrome.com/docs/extensions/reference/api/contextMenus#event-onClicked
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  // Check if the clicked menu item is 'exampleContextMenu'
-  if (info.menuItemId === "exampleContextMenu") {
-    const selectedText = info.selectionText; // Get the selected text
-    console.log(Date.now(), "Selected text: ", selectedText);
-  }
+const loginUrls = {};
+
+function addLoginUrl(linkUrl, loginUrl) {
+    loginUrls[linkUrl] = loginUrl;
+}
+
+function handleLinkClick(linkUrl) {
+    const loginPageUrl = loginUrls[linkUrl];
+    if (!loginPageUrl) {
+        console.error('Login URL not found for link:', linkUrl);
+        return;
+    }
+
+    chrome.tabs.create({ url: loginPageUrl }, function(tab) {
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (tabId === tab.id && info.status === 'complete') {
+                chrome.tabs.sendMessage(tabId, { action: 'login', targetUrl: linkUrl });
+                chrome.tabs.onUpdated.removeListener(listener);
+            }
+        });
+    });
+}
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === 'handleLinkClick') {
+        handleLinkClick(request.linkUrl);
+    }
 });
