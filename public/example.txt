@@ -6,7 +6,6 @@
       "title": "Example Page 1",
       "active": true,
       "pinned": false
-      // Other properties...
     },
     {
       "id": 2,
@@ -14,7 +13,6 @@
       "title": "Example Page 2",
       "active": false,
       "pinned": false
-      // Other properties...
     }
   ]
 }
