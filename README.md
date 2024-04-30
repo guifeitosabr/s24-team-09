@@ -1,10 +1,10 @@
 # FocusTabs
 
-FocusTabs is a Chrome extension that allows users to create or import to-do lists directly to their Chrome browser, allowing them to never lose sight of their goals, even while browsing. FocusGuard also includes a feature to completely block sites based on tasks being worked on, as well as limit your daily time spent visiting them, until your to-do list is completed, to ensure that you remain productive. 
+FocusTabs is a Chrome extension that allows users to create or import to-do lists directly to their Chrome browser, allowing them to never lose sight of their goals, even while browsing. FocusTabs also includes a feature to completely block sites based on tasks being worked on, as well as limit your daily time spent visiting them, until your to-do list is completed, to ensure that you remain productive. 
 
 An AI assistant will handle certain websites that are not explicitly blocked but may be distracting to the task at hand by sending a warning message to the user about their activity. Extended durations can also trigger warnings. Since FocusGuard constantly learns from your browsing habits, it becomes smarter the longer you use it, allowing it to continually make better suggestions regarding whether your browsing is relevant to the task at hand or not. 
 
-FocusGuard also promises to always keep your personal data private. Data will never be shared with 3rd parties for purposes other than improving the performance of the extension.
+FocusTabs also promises to always keep your personal data private. Data will never be shared with 3rd parties for purposes other than improving the performance of the extension.
 
 
 ## Installation
