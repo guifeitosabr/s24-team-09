@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 async function initialize() {
     await initializeDatabase();    
 }
@@ -56,12 +54,23 @@ async function writeTabsToGroup(groupName, tabObjects) {
         const tx = db.transaction(['tabs', 'tabGroups'], 'readwrite');
         const tabStore = tx.objectStore('tabs');
         const groupStore = tx.objectStore('tabGroups');
-        await tabStore.clear();
-        await groupStore.clear();
-        await Promise.all(tabObjects.map(tab => {
+
+        const existingTabs = await readTabsFromGroup(groupName);
+
+        console.log('Existing tabs:', existingTabs); // Debugging log
+
+        const newTabs = tabObjects.filter(tab => {
+            return !existingTabs.some(existingTab => existingTab.url == tab.url);
+        });
+
+        console.log('New tabs:', newTabs); // Debugging log
+
+        await Promise.all(newTabs.map(tab => {
             return tabStore.add({ ...tab, group: groupName });
         }));
-        await groupStore.put({ name: groupName });
+
+        await groupStore.put({ name: groupName, tabs: existingTabs.concat(newTabs) });
+
         await tx.complete;
     } catch (err) {
         console.error(`Error writing tabs to group ${groupName}:`, err);
@@ -91,8 +100,12 @@ async function readTabsFromGroup(groupName) {
     }
 }
 
-
 chrome.runtime.onInstalled.addListener(() => {
+    console.log('Extension installed or updated. Initializing...');
     initialize();
+});
+
+chrome.runtime.onStartup.addListener( () => {
+    console.log(`Here`);
 });
 
