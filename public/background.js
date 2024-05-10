@@ -49,33 +49,48 @@ async function createTabGroup(groupName) {
 }
 
 async function writeTabsToGroup(groupName, tabObjects) {
+
+    const existingTabs = await readTabsFromGroup(groupName);
+
     try {
         const db = await dbPromise;
         const tx = db.transaction(['tabs', 'tabGroups'], 'readwrite');
         const tabStore = tx.objectStore('tabs');
         const groupStore = tx.objectStore('tabGroups');
 
-        const existingTabs = await readTabsFromGroup(groupName);
-
-        console.log('Existing tabs:', existingTabs); // Debugging log
-
-        const newTabs = tabObjects.filter(tab => {
-            return !existingTabs.some(existingTab => existingTab.url == tab.url);
+        const newTabs = tabObjects.filter((tab, index, self) => {
+            const isUniqueInTabObjects = self.findIndex(t => t.url === tab.url) === index;
+            const isDuplicate = existingTabs.some(existingTab => existingTab.url === tab.url);        
+            return isUniqueInTabObjects && !isDuplicate;
         });
 
-        console.log('New tabs:', newTabs); // Debugging log
-
         await Promise.all(newTabs.map(tab => {
-            return tabStore.add({ ...tab, group: groupName });
+            return tabStore.put({ ...tab, group: groupName });
         }));
 
-        await groupStore.put({ name: groupName, tabs: existingTabs.concat(newTabs) });
+        const combinedTabs = existingTabs.concat(newTabs);
 
+        const uniqueUrls = new Set();
+
+        const uniqueCombinedTabs = combinedTabs.filter(tab => {
+            if (!uniqueUrls.has(tab.url)) {
+                uniqueUrls.add(tab.url);
+                return true;
+            } else {
+                return false;
+            }
+        });
+        
+        
+        await groupStore.put({ name: groupName, tabs: uniqueCombinedTabs });
         await tx.complete;
+
+
     } catch (err) {
         console.error(`Error writing tabs to group ${groupName}:`, err);
     }
 }
+
 
 async function readTabsFromGroup(groupName) {
     try {
@@ -83,22 +98,31 @@ async function readTabsFromGroup(groupName) {
         const tx = db.transaction('tabs', 'readonly');
         const index = tx.objectStore('tabs').index('group');
         const range = IDBKeyRange.only(groupName);
-        const cursor = await index.openCursor(range);
         const tabs = [];
-        cursor.onsuccess = (event) => {
-            const cursor = event.target.result;
-            if (cursor) {
-                tabs.push(cursor.value);
-                cursor.continue();
-            }
-        };
-        await tx.complete;
+
+        await new Promise((resolve, reject) => {
+            const cursorRequest = index.openCursor(range);
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    tabs.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
         return tabs;
     } catch (err) {
         console.error(`Error reading tabs from group ${groupName}:`, err);
         return [];
     }
 }
+
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('Extension installed or updated. Initializing...');
