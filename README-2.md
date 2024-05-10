@@ -62,3 +62,5 @@ Key aspects of the Manifest V3 configuration include:
 - `content_scripts`: Specifies the content script to be injected into web pages
 
 ## Credits
+
+We thank Professor Jeremie Lumbroso, whose starter code repo (linked [here](https://github.com/CIS-3500/chrome-extension-react-typescript-starter])) was invaluable to us. 
