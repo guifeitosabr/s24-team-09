@@ -63,4 +63,4 @@ Key aspects of the Manifest V3 configuration include:
 
 ## Credits
 
-We thank Professor Jeremie Lumbroso, whose starter code repo (linked [here](https://github.com/CIS-3500/chrome-extension-react-typescript-starter])) was invaluable to us. 
+We thank Professor Jeremie Lumbroso, whose starter code repo (linked [here](https://github.com/CIS-3500/chrome-extension-react-typescript-starter)) was invaluable to us. 
