@@ -1,3 +1,6 @@
+const { getSuggestedTabGroups } = require('./openai.js');
+
+
 async function initialize() {
     await initializeDatabase();    
 }
@@ -119,6 +122,49 @@ async function readTabsFromGroup(groupName) {
         return tabs;
     } catch (err) {
         console.error(`Error reading tabs from group ${groupName}:`, err);
+        return [];
+    }
+}
+
+async function getAllTabsFromDatabase() {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabs', 'readonly');
+        const index = tx.objectStore('tabs').index('group');
+        const range = IDBKeyRange.only(groupName);
+        const tabs = [];
+
+        await new Promise((resolve, reject) => {
+            const cursorRequest = index.openCursor(range);
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    tabs.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        return tabs;
+    } catch (err) {
+        console.error(`Error reading tabs from database:`, err);
+        return [];
+    }
+}
+
+
+async function getSuggestions() {
+    try {
+        const tabObjects = await getAllTabsFromDatabase();
+        const tabGroups = await getSuggestedTabGroups(tabObjects);
+        return tabGroups;
+    } catch (error) {
+        console.error('Error getting suggested tab groups:', error);
         return [];
     }
 }
