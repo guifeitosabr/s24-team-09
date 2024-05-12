@@ -101,27 +101,17 @@ async function groupTabsByContent(tabObjects) {
     }
 }
 
-
-const tabObjects = [
-    { id: 1, url: "https://www.google.com/", title: "Google" },
-    { id: 2, url: "https://www.youtube.com/", title: "YouTube" },
-    { id: 3, url: "https://www.amazon.com/", title: "Amazon" },
-    { id: 4, url: "https://www.facebook.com/", title: "Facebook" },
-    { id: 5, url: "https://www.netflix.com/", title: "Netflix" },
-    { id: 6, url: "https://www.wikipedia.org/", title: "Wikipedia" },
-    { id: 7, url: "https://www.apple.com/", title: "Apple" },
-    { id: 8, url: "https://www.microsoft.com/", title: "Microsoft" },
-    { id: 9, url: "https://www.twitter.com/", title: "Twitter" },
-    { id: 10, url: "https://www.instagram.com/", title: "Instagram" },
-];
-
-groupTabsByContent(tabObjects)
-    .then(groups => {
+async function getSuggestedTabGroups(tabObjects) {
+    try {
+        const groups = await groupTabsByContent(tabObjects);
         const filteredGroups = groups.filter(group => group.length > 1);
+        
+        return filteredGroups;
+    } catch (error) {
+        throw new Error('Error:', error);
+    }
+}
 
-        console.log('Tab Groups length (greater than 5):', filteredGroups.length);
-        console.log('Tab Groups (greater than 5):', filteredGroups);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+module.exports = {
+    getSuggestedTabGroups,
+};

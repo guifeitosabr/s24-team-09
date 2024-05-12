@@ -1,3 +1,6 @@
+const { getSuggestedTabGroups } = require('./openai.js');
+
+
 async function initialize() {
     await initializeDatabase();    
 }
@@ -119,6 +122,110 @@ async function readTabsFromGroup(groupName) {
         return tabs;
     } catch (err) {
         console.error(`Error reading tabs from group ${groupName}:`, err);
+        return [];
+    }
+}
+
+async function removeTabFromGroup(groupName, tabObject) {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabs', 'readwrite');
+        const store = tx.objectStore('tabs');
+        const index = store.index('group');
+        const range = IDBKeyRange.only(groupName);
+        const cursorRequest = index.openCursor(range);
+
+        await new Promise((resolve, reject) => {
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const tab = cursor.value;
+                    if (tab.url === tabObject.url && tab.title === tabObject.title) {
+                        cursor.delete();
+                    }
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+    } catch (err) {
+        console.error(`Error removing tab ${tabObject.title} from group ${groupName}:`, err);
+    }
+}
+
+async function getAllGroupNames() {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabGroups', 'readonly');
+        const store = tx.objectStore('tabGroups');
+        const groupNames = [];
+
+        await new Promise((resolve, reject) => {
+            const cursorRequest = store.openCursor();
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    groupNames.push(cursor.key);
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        return groupNames;
+    } catch (err) {
+        console.error('Error getting group names:', err);
+        return [];
+    }
+}
+
+async function getAllTabsFromDatabase() {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabs', 'readonly');
+        const index = tx.objectStore('tabs').index('group');
+        const range = IDBKeyRange.only(groupName);
+        const tabs = [];
+
+        await new Promise((resolve, reject) => {
+            const cursorRequest = index.openCursor(range);
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    tabs.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        return tabs;
+    } catch (err) {
+        console.error(`Error reading tabs from database:`, err);
+        return [];
+    }
+}
+
+
+async function getSuggestions() {
+    try {
+        const tabObjects = await getAllTabsFromDatabase();
+        const tabGroups = await getSuggestedTabGroups(tabObjects);
+        return tabGroups;
+    } catch (error) {
+        console.error('Error getting suggested tab groups:', error);
         return [];
     }
 }
