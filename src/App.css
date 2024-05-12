@@ -10,7 +10,11 @@
 .container {
   width: 400px;
   padding: 1rem;
-  background-color: white;
+  background-color: black;
+}
+
+.title {
+  color: white,
 }
 
 /* Style for the dropdown container */
@@ -49,3 +53,37 @@
 
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {background-color: #f1f1f1}
+
+.regAddTabBtn {
+  padding: 5px;
+  border: 0px;
+  color: #1e1e1e;
+}
+
+.outlineAddTabBtn {
+  border: 2px solid blue;
+  padding: 5px;
+  border: 0px;
+  color: #1e1e1e;
+}
+
+.addbtn {
+  color: white;
+  background-color: #023e8a;
+  outline: 0px;
+  height: 30px;
+}
+
+.button-row {
+  display: flex;        /* Uses flexbox to lay out children */
+  justify-content: space-around; /* Distributes space around items */
+  align-items: center;  /* Centers items vertically in the container */
+}
+
+.newtabs-container {
+  padding: 10px 10px 10px 10px;
+  display: flex;        /* Enables flexbox */
+  flex-wrap: wrap;      /* Allows items to wrap onto the next line */
+  justify-content: flex-start; /* Aligns items to the start of the flex line */
+  gap: 5px;            /* Space between buttons */
+}

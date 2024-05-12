@@ -133,3 +133,26 @@ chrome.runtime.onStartup.addListener( () => {
     console.log(`Here`);
 });
 
+chrome.tabs.onActivated.addListener(activeInfo => {
+    chrome.tabs.get(activeInfo.tabId, (tab) => {
+        console.log(tab.url);
+        chrome.runtime.sendMessage({url: tab.url, title: tab.title});
+    });
+});
+
+// Saving state example
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+if (request.type === "saveState") {
+    chrome.storage.local.set({state: request.data});
+}
+});
+
+// Restoring state example
+document.addEventListener('DOMContentLoaded', function() {
+chrome.storage.local.get("state", function(data) {
+    if (data.state) {
+        // Restore the state in your popup
+    }
+});
+});
+
