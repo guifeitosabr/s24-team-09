@@ -126,6 +126,37 @@ async function readTabsFromGroup(groupName) {
     }
 }
 
+async function removeTabFromGroup(groupName, tabObject) {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabs', 'readwrite');
+        const store = tx.objectStore('tabs');
+        const index = store.index('group');
+        const range = IDBKeyRange.only(groupName);
+        const cursorRequest = index.openCursor(range);
+
+        await new Promise((resolve, reject) => {
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const tab = cursor.value;
+                    if (tab.url === tabObject.url && tab.title === tabObject.title) {
+                        cursor.delete();
+                    }
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+    } catch (err) {
+        console.error(`Error removing tab ${tabObject.title} from group ${groupName}:`, err);
+    }
+}
+
 async function getAllTabsFromDatabase() {
     try {
         const db = await dbPromise;
