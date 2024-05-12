@@ -157,6 +157,36 @@ async function removeTabFromGroup(groupName, tabObject) {
     }
 }
 
+async function getAllGroupNames() {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('tabGroups', 'readonly');
+        const store = tx.objectStore('tabGroups');
+        const groupNames = [];
+
+        await new Promise((resolve, reject) => {
+            const cursorRequest = store.openCursor();
+            cursorRequest.onerror = () => {
+                reject(cursorRequest.error);
+            };
+            cursorRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    groupNames.push(cursor.key);
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        return groupNames;
+    } catch (err) {
+        console.error('Error getting group names:', err);
+        return [];
+    }
+}
+
 async function getAllTabsFromDatabase() {
     try {
         const db = await dbPromise;
