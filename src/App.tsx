@@ -34,12 +34,11 @@ function App() {
   const [groupName, setGroupName] = useState("");
   const [groupTabs, setGroupTabs] = useState<Tab[]>([]);
   const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
-  const [currentGroupNames, setCurrentGroupNames] = useState<string[]>([]);
   const [aiGrouping, setAIGrouping] = useState<TabGroup[]>([]);
 
   useEffect(() => {
     getCurrentTabGroups();
-  }, [currentGroupNames]); 
+  }); 
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
@@ -66,17 +65,21 @@ function App() {
   const addGroup = () => {
     const selectedTabs = allTabs.filter(tab => tab.selected);
 
-    setCurrentGroupNames(prevGroupNames => [...prevGroupNames, groupName]);
-    
-    callBackgroundFunction('createTabGroup', groupName)
-      .then(() => {
-        callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
-      })
+    callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs })
       .then(() => {
         cancelGroup();
         getCurrentTabGroups();
-      })
-      .catch(error => console.error('Error calling background function:', error));
+      });
+
+    // callBackgroundFunction('createTabGroup', groupName)
+    //   .then(() => {
+    //     callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
+    //   })
+    //   .then(() => {
+    //     cancelGroup();
+    //     getCurrentTabGroups();
+    //   })
+    //   .catch(error => console.error('Error calling background function:', error));
   };
 
   const newGroupTabSelected = (tab) => {
@@ -90,26 +93,27 @@ function App() {
     }));
   };
 
-  const handleGroupNameChange = (event) => {
-    setGroupName(event.target.value);
-  };
-
   const getCurrentTabGroups = () => {
-    Promise.all(
-      currentGroupNames.map(groupName =>
-        callBackgroundFunction('readTabsFromGroup', groupName)
+    setTabGroups([]);
+    callBackgroundFunction('getAllTabsFromDatabase', {}).then(groups => {
+      Promise.all(
+        (groups as TabGroup[]).map(g =>
+          setTabGroups(tabGroups => [...tabGroups, g])
+          // callBackgroundFunction('readTabsFromGroup', groupName)
+        )
       )
-    )
-      .then(responses => {
-        const newTabGroups = responses.map(response => response as TabGroup);
-        setTabGroups(newTabGroups);
-        console.log(newTabGroups)
-      })
-      .catch(error => console.error('Error getting current tab groups:', error));
+        .then(responses => {
+          // const newTabGroups = responses.map(response => response as TabGroup);
+          // setTabGroups(newTabGroups);
+          // console.log(newTabGroups)
+        })
+        .catch(error => console.error('Error getting current tab groups:', error));
+    });
   };
-
+  
   const makeAIGrouping = () => {
-    callBackgroundFunction('getSuggestions', {})
+    setAIGrouping([]);
+    callBackgroundFunction('getSuggestedTabGroups', {})
     .then(response => {
       (response as TabGroup[]).map(group =>
         setAIGrouping(prevGrouping => [...prevGrouping, group])
@@ -159,7 +163,7 @@ function App() {
           <input
             type="text"
             value={groupName}
-            onChange={handleGroupNameChange}
+            onChange={e => setGroupName(e.target.value)}
             placeholder="Enter group name"
           />
         </div>

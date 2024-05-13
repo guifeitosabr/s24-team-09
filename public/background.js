@@ -227,7 +227,7 @@ const operations = {
             const db = await dbPromise;
             const tx = db.transaction('tabs', 'readonly');
             const index = tx.objectStore('tabs').index('group');
-            const range = IDBKeyRange.only(groupName);
+            const range = IDBKeyRange.only(groupName.name);
             const tabs = [];
     
             await new Promise((resolve, reject) => {
@@ -246,11 +246,11 @@ const operations = {
                 };
             });
 
-            console.log(`Read tabs from ${groupName}`)
+            console.log(`Read tabs from ${groupName.name}`)
     
             return tabs;
         } catch (err) {
-            console.error(`Error reading tabs from group ${groupName}:`, err);
+            console.error(`Error reading tabs from group ${groupName.name}:`, err);
             return [];
         }
     },
