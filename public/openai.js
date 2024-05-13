@@ -1,27 +1,23 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-const openai = require('openai');
-
 const OpenAI_API_KEY = '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';
-
-const openAI = new openai.OpenAI({
-    apiKey: OpenAI_API_KEY
-});
 
 const SIMILARITY_THRESHOLD = 0.5;
 
 async function extractContentFromURL(url) {
     try {
-        const response = await axios.get(url);
-        const html = response.data;
-        const $ = cheerio.load(html);
-
-        const contentUnfiltered = $('p').slice(0, 10).text();
-
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to fetch content from URL');
+        }
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const paragraphs = doc.querySelectorAll('p');
+        const contentUnfiltered = Array.from(paragraphs)
+            .slice(0, 10)
+            .map(p => p.textContent)
+            .join(' ');
         const words = contentUnfiltered.split(/\s+/);
-
         const content = words.slice(0, 100).join(' ');
-
         return content;
     } catch (error) {
         console.error('Error extracting content from URL:', error);
@@ -33,12 +29,22 @@ const tabEmbeddings = {};
 
 async function calculateEmbedding(content) {
     try {
-        const embeddings = await openAI.embeddings.create({
-            model: "text-embedding-ada-002",
-            input: [content],
-            encoding_format: "float",
+        const response = await fetch('https://api.openai.com/v1/engines/text-embedding-ada-002/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OpenAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                prompt: content,
+                max_tokens: 1
+            })
         });
-        return embeddings.data[0].embedding;
+        if (!response.ok) {
+            throw new Error('Failed to calculate embedding');
+        }
+        const data = await response.json();
+        return data.choices[0].text;
     } catch (error) {
         console.error('Error calculating embedding:', error);
         return null;
@@ -51,6 +57,7 @@ async function calculateSimilarity(embedding1, embedding2) {
     const similarity = embedding1.reduce((acc, val, i) => acc + val * embedding2[i], 0);
     return similarity;
 }
+
 
 async function groupTabsByContent(tabObjects) {
     try {
@@ -147,11 +154,6 @@ async function getSuggestedTabGroups(tabObjects) {
         throw new Error('Error:', error);
     }
 }
-
-
-module.exports = {
-    getSuggestedTabGroups,
-};
 
 
 // Testing out 

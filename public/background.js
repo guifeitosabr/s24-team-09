@@ -1,44 +1,35 @@
-const { getSuggestedTabGroups } = require('./openai.js');
+let dbPromise;
 
-const dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open('tabGroupsDB', 1);
-    request.onerror = (event) => {
-        reject('Error opening database');
-    };
-    request.onsuccess = (event) => {
-        resolve(event.target.result);
-    };
-    request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        const groupStore = db.createObjectStore('tabGroups', { keyPath: 'name' });
-        db.createObjectStore('tabs', { keyPath: 'id', autoIncrement: true })
-            .createIndex('group', 'group');
-    };
-});
+async function initializeDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('tabGroupsDB', 1);
+        request.onerror = (event) => {
+            reject('Error opening database');
+        };
+        request.onsuccess = (event) => {
+            resolve(event.target.result);
+        };
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            db.createObjectStore('tabGroups', { keyPath: 'name' });
+            db.createObjectStore('tabs', { keyPath: 'id', autoIncrement: true })
+                .createIndex('group', 'group');
+        };
+    });
+}
+
+async function initialize() {
+    try {
+        const db = await initializeDatabase();
+        dbPromise = Promise.resolve(db);
+        console.log('Database initialized.');
+    } catch (error) {
+        console.error('Error initializing database:', error);
+    }
+}
 
 const operations = {
-    async initialize() {
-        await initializeDatabase();    
-    },
-    
-    async initializeDatabase() {
-        const dbPromise = new Promise((resolve, reject) => {
-            const request = indexedDB.open('tabGroupsDB', 1);
-            request.onerror = (event) => {
-                reject('Error opening database');
-            };
-            request.onsuccess = (event) => {
-                resolve(event.target.result);
-            };
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                const groupStore = db.createObjectStore('tabGroups', { keyPath: 'name' });
-                db.createObjectStore('tabs', { keyPath: 'id', autoIncrement: true })
-                    .createIndex('group', 'group');
-            };
-        });
-    },
-    
+
     async createTabGroup(data) {
         console.log(`Tab group ${data.name} created successfully.`);
         try {
@@ -233,16 +224,13 @@ const operations = {
     }
 }
 
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log(`Tab group ${data.name} created successfully.`);
     if (operations[request.action]) {
-        operations[request.action](request.data).then(result => {
-            sendResponse({ result });
-        }).catch(error => {
-            console.error("Error processing request:", error);
-            sendResponse({ error: error.message });
-        });
-        return true; // Indicate that sendResponse will be called asynchronously
+        operations[request.action](request.data)
+            .then(result => sendResponse({ result }))
+            .catch(error => sendResponse({ error: error.message }));
+        return true; 
     }
 });
 
@@ -251,6 +239,6 @@ chrome.runtime.onInstalled.addListener(() => {
     initialize();
 });
 
-chrome.runtime.onStartup.addListener( () => {
-    console.log(`Here`);
+chrome.runtime.onStartup.addListener(() => {
+    console.log('Extension started.');
 });

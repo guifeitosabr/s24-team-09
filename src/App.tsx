@@ -36,9 +36,9 @@ function App() {
   const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
   const [currentGroupNames, setCurrentGroupNames] = useState<string[]>([]);
 
-  // useEffect(() => {
-  //   getCurrentTabGroups();
-  // }, []); 
+  useEffect(() => {
+    getCurrentTabGroups();
+  }, []); 
 
   const toggleDropdown = (index) => {
     setOpenDropdown(openDropdown === index ? null : index);
