@@ -1,4 +1,8 @@
-const OpenAI_API_KEY = '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';
+let OpenAI_API_KEY = ''
+
+function setApiKey(key) {
+    OpenAI_API_KEY  = key;
+}
 
 const SIMILARITY_THRESHOLD = 0.5;
 
