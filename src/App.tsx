@@ -43,7 +43,7 @@ function App() {
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
-  }
+  };
 
   const getAllTabs = () => {
     setMakingGroup(!makingGroup);
@@ -54,14 +54,14 @@ function App() {
         setAllTabs(allTabs => [...allTabs, newTab]);
       });
     });
-  }
+  };
 
   const cancelGroup = () => {
     setMakingGroup(!makingGroup);
     setAllTabs([]);
     setGroupName("");
     setAIGrouping([]);
-  }
+  };
 
   const addGroup = () => {
     const selectedTabs = allTabs.filter(tab => tab.selected);
@@ -77,7 +77,7 @@ function App() {
         getCurrentTabGroups();
       })
       .catch(error => console.error('Error calling background function:', error));
-  }
+  };
 
   const newGroupTabSelected = (tab) => {
     setAllTabs(allTabs => allTabs.map(t => {
@@ -88,11 +88,11 @@ function App() {
       }
       return t; // Return the tab unchanged if it's not the one clicked
     }));
-  }
+  };
 
   const handleGroupNameChange = (event) => {
     setGroupName(event.target.value);
-  }
+  };
 
   const getCurrentTabGroups = () => {
     Promise.all(
@@ -115,10 +115,26 @@ function App() {
         setAIGrouping(prevGrouping => [...prevGrouping, group])
       );
     })
-  }
+  };
+
+  const saveAIGroups = () => {
+    Promise.all(
+      aiGrouping.map(group =>
+        callBackgroundFunction('createTabGroup', group.groupName)
+      )
+    )
+      .then(() => {
+        aiGrouping.map(group =>
+          callBackgroundFunction('writeTabsToGroup', { groupName: group.groupName, tabObjects: group.tabs })
+        )
+      })
+      .catch(error => console.error('Error getting current tab groups:', error));
+      getCurrentTabGroups();
+  };
 
   return (
     <div className="App">
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
       <h1 className="title">Focus Tabs</h1>
       <ul>
       {tabGroups.length > 0 ? (
@@ -177,17 +193,31 @@ function App() {
         aiGrouping.map((group, index) => (
           <li key={index}>
             <div className="ai-group">
-              <h2 className="ai-group-label">group.groupName</h2>
-              <div className={"ai-group-links"}>
-                {group.tabs.map((link, j) => (
-                  <a key={j} href={link.url}>{link.title}</a>
-                ))}
-              </div>
+              <h2 className="ai-group-label">{group.groupName}</h2>
+              <button key={index} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
+                <i className="material-icons">add</i>
+                <i onClick={() => setGroupName(group.groupName || '')}></i>
+              </button>
             </div>
+            {group.tabs.map((tab, j) => (
+                <div className={"ai-group-link"}>
+                  <h3 className="ai-group-url">{tab.title}</h3>
+                  <button key={j} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
+                    <i className="material-icons">close</i>
+                    <i onClick={() => setGroupName(group.groupName || '')}></i>
+                  </button>
+                </div>
+            ))}
           </li>
         ))
       )}
       </ul>
+      {(makingGroup || aiGrouping.length > 0) && 
+        <div className="button-row">
+          <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
+          <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
+        </div>
+      }
     </div>
   );
 }
