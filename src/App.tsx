@@ -32,9 +32,10 @@ function App() {
   const [makingGroup, setMakingGroup] = useState(false);
   const [allTabs, setAllTabs] = useState<{title: string | undefined; url: string | undefined, selected: boolean | undefined}[]>([]);
   const [groupName, setGroupName] = useState("");
-  const [groupTabs, setGroupTabs] = useState<{title: string | undefined; url: string | undefined}[]>([]);
+  const [groupTabs, setGroupTabs] = useState<Tab[]>([]);
   const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
   const [currentGroupNames, setCurrentGroupNames] = useState<string[]>([]);
+  const [aiGrouping, setAIGrouping] = useState<TabGroup[]>([]);
 
   useEffect(() => {
     getCurrentTabGroups();
@@ -59,6 +60,7 @@ function App() {
     setMakingGroup(!makingGroup);
     setAllTabs([]);
     setGroupName("");
+    setAIGrouping([]);
   }
 
   const addGroup = () => {
@@ -66,9 +68,9 @@ function App() {
 
     setCurrentGroupNames(prevGroupNames => [...prevGroupNames, groupName]);
     
-    callBackgroundFunction('createTabGroup', { name: groupName })
+    callBackgroundFunction('createTabGroup', groupName)
       .then(() => {
-        return callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
+        callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
       })
       .then(() => {
         cancelGroup();
@@ -105,6 +107,15 @@ function App() {
       })
       .catch(error => console.error('Error getting current tab groups:', error));
   };
+
+  const makeAIGrouping = () => {
+    callBackgroundFunction('getSuggestions', {})
+    .then(response => {
+      (response as TabGroup[]).map(group =>
+        setAIGrouping(prevGrouping => [...prevGrouping, group])
+      );
+    })
+  }
 
   return (
     <div className="App">
@@ -149,15 +160,34 @@ function App() {
               </button>);
         })}
       </div>
-      {makingGroup && 
+      {(makingGroup || aiGrouping.length > 0) && 
         <div className="button-row">
           <button onClick={() => addGroup()} className="addbtn">{"Add Group"}</button>
           <button onClick={() => cancelGroup()} className="addbtn">{"Cancel Group"}</button>
         </div>
       }
       {!makingGroup && 
-        <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
+        <div>
+          <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
+          <button onClick={() => makeAIGrouping()} className="addbtn">{"AI Tab Grouping"}</button>
+        </div>
       }
+      <ul>
+      {aiGrouping.length > 0 && (
+        aiGrouping.map((group, index) => (
+          <li key={index}>
+            <div className="ai-group">
+              <h2 className="ai-group-label">group.groupName</h2>
+              <div className={"ai-group-links"}>
+                {group.tabs.map((link, j) => (
+                  <a key={j} href={link.url}>{link.title}</a>
+                ))}
+              </div>
+            </div>
+          </li>
+        ))
+      )}
+      </ul>
     </div>
   );
 }
