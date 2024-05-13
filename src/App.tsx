@@ -38,10 +38,10 @@ function App() {
 
   useEffect(() => {
     getCurrentTabGroups();
-  }, []); 
+  }, [currentGroupNames]); 
 
   const toggleDropdown = (index) => {
-    setOpenDropdown(openDropdown === index ? null : index);
+    setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
   }
 
   const getAllTabs = () => {
@@ -62,17 +62,19 @@ function App() {
   }
 
   const addGroup = () => {
-    setGroupTabs([]);
-    for (let i = 0; i < allTabs.length; i += 1) {
-      if (allTabs[i].selected) {
-        setGroupTabs(groupTabs => [...groupTabs, {title: allTabs[i].title, url: allTabs[i].url}])
-      }
-    }
-    callBackgroundFunction('createTabGroup', {name: groupName})
-    .catch(error => console.error('Error calling background function:', error));
-    // callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: groupTabs });
-    cancelGroup();
-    // getCurrentTabGroups();
+    const selectedTabs = allTabs.filter(tab => tab.selected);
+
+    setCurrentGroupNames(prevGroupNames => [...prevGroupNames, groupName]);
+    
+    callBackgroundFunction('createTabGroup', { name: groupName })
+      .then(() => {
+        return callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
+      })
+      .then(() => {
+        cancelGroup();
+        getCurrentTabGroups();
+      })
+      .catch(error => console.error('Error calling background function:', error));
   }
 
   const newGroupTabSelected = (tab) => {
@@ -86,26 +88,30 @@ function App() {
     }));
   }
 
-  const handleGroupNameChange = (group) => {
-    setGroupName(group.target.value);
+  const handleGroupNameChange = (event) => {
+    setGroupName(event.target.value);
   }
 
   const getCurrentTabGroups = () => {
-    setTabGroups([]);
-    callBackgroundFunction('getAllGroupNames', {})
-    .then(response => setCurrentGroupNames(response as string[]));
-
-    for (let i = 0; i < currentGroupNames.length; i += 1) {
-      callBackgroundFunction('readTabsFromGroup',  currentGroupNames[i])
-      .then(response => setTabGroups([...tabGroups, response as TabGroup]));
-    }
-  }
+    Promise.all(
+      currentGroupNames.map(groupName =>
+        callBackgroundFunction('readTabsFromGroup', groupName)
+      )
+    )
+      .then(responses => {
+        const newTabGroups = responses.map(response => response as TabGroup);
+        setTabGroups(newTabGroups);
+        console.log(newTabGroups)
+      })
+      .catch(error => console.error('Error getting current tab groups:', error));
+  };
 
   return (
     <div className="App">
       <h1 className="title">Focus Tabs</h1>
       <ul>
-        {tabGroups.map((group, index) => (
+      {tabGroups.length > 0 ? (
+        tabGroups.map((group, index) => (
           <li key={index}>
             <div className="dropdown">
               <button onClick={() => toggleDropdown(index)} className="dropbtn">{group.groupName}</button>
@@ -116,7 +122,10 @@ function App() {
               </div>
             </div>
           </li>
-        ))}
+        ))
+      ) : (
+        <li>No tab groups available</li>
+      )}
       </ul>
       {makingGroup && (
         <div>
