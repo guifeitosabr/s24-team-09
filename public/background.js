@@ -31,7 +31,6 @@ async function initialize() {
 const operations = {
 
     async createTabGroup(data) {
-        console.log(`Tab group ${data.name} created successfully.`);
         try {
             const db = await dbPromise;
             const tx = db.transaction('tabGroups', 'readwrite');
@@ -153,6 +152,9 @@ const operations = {
     async getAllGroupNames() {
         try {
             const db = await dbPromise;
+            if (!db) {
+                throw new Error('Database not initialized.');
+            }
             const tx = db.transaction('tabGroups', 'readonly');
             const store = tx.objectStore('tabGroups');
             const groupNames = [];
