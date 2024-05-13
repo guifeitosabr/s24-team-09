@@ -1,57 +1,37 @@
 let dbPromise;
 
-// OPENAI STUFF
+// OPENAI Stuff
+
 let OpenAI_API_KEY = ''
 
 function setApiKey(key) {
-    OpenAI_API_KEY = key;
+    OpenAI_API_KEY  = key;
 }
 
-const SIMILARITY_THRESHOLD = 0.5;
-
-async function extractContentFromURL(url) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Failed to fetch content from URL');
-        }
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const paragraphs = doc.querySelectorAll('p');
-        const contentUnfiltered = Array.from(paragraphs)
-            .slice(0, 10)
-            .map(p => p.textContent)
-            .join(' ');
-        const words = contentUnfiltered.split(/\s+/);
-        const content = words.slice(0, 100).join(' ');
-        return content;
-    } catch (error) {
-        console.error('Error extracting content from URL:', error);
-        return null;
-    }
-}
+const SIMILARITY_THRESHOLD = 0.3;
 
 const tabEmbeddings = {}; 
 
 async function calculateEmbedding(content) {
+
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OpenAI_API_KEY}`
+        },
+        body: JSON.stringify({ input: content, model: "text-embedding-3-small" })
+    });
+
     try {
-        const response = await fetch('https://api.openai.com/v1/engines/text-embedding-ada-002/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OpenAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                prompt: content,
-                max_tokens: 1
-            })
-        });
+
         if (!response.ok) {
             throw new Error('Failed to calculate embedding');
         }
+
         const data = await response.json();
-        return data.choices[0].text;
+
+        return data.data[0].embedding;
     } catch (error) {
         console.error('Error calculating embedding:', error);
         return null;
@@ -62,6 +42,8 @@ async function calculateSimilarity(embedding1, embedding2) {
     if (!embedding1 || !embedding2) return 0;
 
     const similarity = embedding1.reduce((acc, val, i) => acc + val * embedding2[i], 0);
+
+    console.log(similarity)
     return similarity;
 }
 
@@ -71,36 +53,36 @@ async function groupTabsByContent(tabObjects) {
         const similarityScores = {};
 
         for (const tab of tabObjects) {
-            const content = await extractContentFromURL(tab.url);
+            const content = tab.title
             const embedding = await calculateEmbedding(content);
-            tabEmbeddings[tab.url] = embedding;
-            similarityScores[tab.url] = [];
+            tabEmbeddings[tab.title] = embedding;
+            similarityScores[tab.title] = [];
         }
 
         for (let i = 0; i < tabObjects.length; i++) {
             const tab1 = tabObjects[i];
             for (let j = i + 1; j < tabObjects.length; j++) {
                 const tab2 = tabObjects[j];
-                const similarity = await calculateSimilarity(tabEmbeddings[tab1.url], tabEmbeddings[tab2.url]);
-                similarityScores[tab1.url].push({ url: tab2.url, similarity });
-                similarityScores[tab2.url].push({ url: tab1.url, similarity });
+                const similarity = await calculateSimilarity(tabEmbeddings[tab1.title], tabEmbeddings[tab2.title]);
+                similarityScores[tab1.title].push({ title: tab2.title, similarity });
+                similarityScores[tab2.title].push({ title: tab1.title, similarity });
             }
         }
 
         const groups = [];
         const visited = {};
         for (const tab of tabObjects) {
-            if (!visited[tab.url]) {
+            if (!visited[tab.title]) {
                 const group = [tab];
-                visited[tab.url] = true;
+                visited[tab.title] = true;
                 const queue = [tab];
                 while (queue.length > 0) {
                     const currentTab = queue.shift();
-                    for (const neighbor of similarityScores[currentTab.url]) {
-                        if (!visited[neighbor.url] && neighbor.similarity > SIMILARITY_THRESHOLD) {
-                            group.push(tabObjects.find(t => t.url === neighbor.url));
-                            visited[neighbor.url] = true;
-                            queue.push(tabObjects.find(t => t.url === neighbor.url));
+                    for (const neighbor of similarityScores[currentTab.title]) {
+                        if (!visited[neighbor.title] && neighbor.similarity > SIMILARITY_THRESHOLD) {
+                            group.push(tabObjects.find(t => t.title === neighbor.title));
+                            visited[neighbor.title] = true;
+                            queue.push(tabObjects.find(t => t.title === neighbor.title));
                         }
                     }
                 }
@@ -110,7 +92,7 @@ async function groupTabsByContent(tabObjects) {
 
         return groups;
     } catch (error) {
-        console.error('Error grouping tabs by content:', error);
+        console.error('Error grouping tabs by title:', error);
         return [];
     }
 }
@@ -120,23 +102,29 @@ async function suggestedGroupName(tabObjects) {
 
         const tabTitles = tabObjects.map(tab => tab.title);
 
-        const prompt = `Provide an appropriate name for a Chrome tab group consisting of the following tabs:\n${tabTitles.join('\n')}\n`;
+        const prompt = `Provide an appropriate name (whatever you do make sure you don't return an empty string) for a Chrome tab group consisting of the following tabs:\n${tabTitles.join('\n')}\n`;
 
-        const response = await fetch('https://api.openai.com/v1/engines/davinci/completions', {
+        const completion = await fetch('https://api.openai.com/v1/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${OpenAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: "text-davinci-003",
+                model: "gpt-3.5-turbo-instruct",
                 prompt: prompt,
-                context: context,
-                max_tokens: 100
-            })
+                max_tokens: 50,
+                temperature: 0.4,
+            }),
         });
 
-        const generatedName = completion.choices[0].text.trim();
+        const data = await completion.json();
+
+        console.log(data.choices[0].text)
+
+        console.log(prompt)
+
+        const generatedName = data.choices[0].text
 
         return generatedName;
     } catch (error) {
@@ -145,8 +133,10 @@ async function suggestedGroupName(tabObjects) {
     }
 }
 
-async function getSuggestedTabGroups(tabObjects) {
+
+async function getSuggestedTabGroups() {
     try {
+        const tabObjects = await getAllTabsFromDatabase()
         const groups = await groupTabsByContent(tabObjects);
         const filteredGroups = groups.filter(group => group.length > 1);
 
@@ -164,6 +154,8 @@ async function getSuggestedTabGroups(tabObjects) {
     }
 }
 
+
+// IndexedDB Stuff
 
 async function initializeDatabase() {
     return new Promise((resolve, reject) => {
@@ -190,6 +182,28 @@ async function initialize() {
         console.log('Database initialized.');
     } catch (error) {
         console.error('Error initializing database:', error);
+    }
+}
+
+async function fetchAndProcessContent(url) {
+    try {
+        const content = await new Promise((resolve, reject) => {
+            chrome.scripting.executeScript({
+                target: { tabId: sender.tab.id },
+                function: window.extractContentFromURL,
+                args: [url]
+            }, results => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError.message);
+                } else {
+                    resolve(results[0].result);
+                }
+            });
+        });
+        console.log('Content:', content);
+        // Perform further processing with the content
+    } catch (error) {
+        console.error('Error fetching and processing content:', error);
     }
 }
 
@@ -380,17 +394,24 @@ const operations = {
           console.error(`Error reading tabs from database:`, err);
           return [];
         }
-      },      
-    
-    
-    async getSuggestions() {
+      },
+
+      async getSuggestedTabGroups() {
         try {
-            const tabObjects = await this.getAllTabsFromDatabase();
-            const tabGroups = await getSuggestedTabGroups(tabObjects);
-            return tabGroups;
+            const tabObjects = await this.getAllTabsFromDatabase()
+            const groups = await groupTabsByContent(tabObjects);
+            const filteredGroups = groups.filter(group => group.length > 1);
+            const groupedTabs = filteredGroups.map(async (group, index) => {
+                const name = await suggestedGroupName(group);
+                return {
+                    name: name,
+                    tabs: group
+                };
+            });
+    
+            return await Promise.all(groupedTabs);
         } catch (error) {
-            console.error('Error getting suggested tab groups:', error);
-            return [];
+            throw new Error('Error:', error);
         }
     }
 }
@@ -413,3 +434,34 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onStartup.addListener(() => {
     console.log('Extension started.');
 });
+
+
+async function getAllTabsFromDatabase() {
+    try {
+      const db = await dbPromise;
+      const tx = db.transaction('tabs', 'readonly');
+      const store = tx.objectStore('tabs');
+      const tabs = [];
+  
+      await new Promise((resolve, reject) => {
+        const cursorRequest = store.openCursor();
+        cursorRequest.onerror = () => {
+          reject(cursorRequest.error);
+        };
+        cursorRequest.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            tabs.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+      });
+  
+      return tabs;
+    } catch (err) {
+      console.error(`Error reading tabs from database:`, err);
+      return [];
+    }
+  }
