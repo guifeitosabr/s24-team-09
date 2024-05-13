@@ -153,6 +153,10 @@ module.exports = {
     getSuggestedTabGroups,
 };
 
+
+// Testing out 
+
+/*
 const tabObjects = [
     { url: 'https://www.wikipedia.org', title: 'Wikipedia' },
     { url: 'https://www.nytimes.com', title: 'NY Times' },
@@ -176,5 +180,5 @@ async function testGetSuggestedTabGroups() {
     }
 }
 
-// Call the test function
 testGetSuggestedTabGroups();
+*/
