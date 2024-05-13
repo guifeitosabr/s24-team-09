@@ -126,6 +126,27 @@ async function readTabsFromGroup(groupName) {
     }
 }
 
+async function emptyGroup(groupName) {
+    try {
+        const tabs = await readTabsFromGroup(groupName);
+        const db = await dbPromise;
+        const tx = db.transaction('tabs', 'readwrite');
+        const store = tx.objectStore('tabs');
+
+        await Promise.all(tabs.map(tab => {
+            return new Promise((resolve, reject) => {
+                const request = store.delete(tab.id);
+                request.onsuccess = resolve;
+                request.onerror = reject;
+            });
+        }));
+
+        console.log(`All tabs removed from group ${groupName}`);
+    } catch (err) {
+        console.error(`Error removing tabs from group ${groupName}:`, err);
+    }
+}
+
 async function removeTabFromGroup(groupName, tabObject) {
     try {
         const db = await dbPromise;

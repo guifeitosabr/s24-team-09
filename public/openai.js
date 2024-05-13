@@ -101,17 +101,84 @@ async function groupTabsByContent(tabObjects) {
     }
 }
 
+async function suggestedGroupName(tabObjects) {
+    try {
+
+        const tabTitles = tabObjects.map(tab => tab.title);
+
+        const prompt = `Provide an appropriate name for a Chrome tab group consisting of the following tabs:\n${tabTitles.join('\n')}\n`;
+
+        const completion = await openAI.completions.create({
+            model: "gpt-3.5-turbo-instruct",
+            prompt: prompt,
+            max_tokens: 50, 
+            temperature: 0.7, 
+            top_p: 1, 
+            frequency_penalty: 0, 
+            presence_penalty: 0, 
+            stop: '\n' 
+        });
+
+        const generatedName = completion.choices[0].text.trim();
+
+        return generatedName;
+    } catch (error) {
+        console.error('Error generating suggested group name:', error);
+        return 'Unnamed Group';
+    }
+}
+
+
 async function getSuggestedTabGroups(tabObjects) {
     try {
         const groups = await groupTabsByContent(tabObjects);
         const filteredGroups = groups.filter(group => group.length > 1);
-        
-        return filteredGroups;
+
+        const groupedTabs = filteredGroups.map(async (group, index) => {
+            const name = await suggestedGroupName(group);
+            return {
+                name: name,
+                tabs: group
+            };
+        });
+
+        return await Promise.all(groupedTabs);
     } catch (error) {
         throw new Error('Error:', error);
     }
 }
 
+
 module.exports = {
     getSuggestedTabGroups,
 };
+
+
+// Testing out 
+
+/*
+const tabObjects = [
+    { url: 'https://www.wikipedia.org', title: 'Wikipedia' },
+    { url: 'https://www.nytimes.com', title: 'NY Times' },
+    { url: 'https://www.bbc.com', title: 'BBC' },
+    { url: 'https://www.reddit.com', title: 'Reddit' },
+    { url: 'https://www.stackoverflow.com', title: 'Stack Overflow' },
+    { url: 'https://www.github.com', title: 'GitHub' },
+    { url: 'https://www.netflix.com', title: 'Netflix' },
+    { url: 'https://www.amazon.com', title: 'Amazon' },
+    { url: 'https://www.apple.com', title: 'Apple' },
+    { url: 'https://www.spotify.com', title: 'Spotify' }
+];
+
+async function testGetSuggestedTabGroups() {
+    try {
+        const suggestedGroups = await getSuggestedTabGroups(tabObjects);
+        console.log('Suggested Tab Groups:');
+        console.log(suggestedGroups);
+    } catch (error) {
+        console.error('Error in test:', error);
+    }
+}
+
+testGetSuggestedTabGroups();
+*/
