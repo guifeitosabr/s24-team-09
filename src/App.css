@@ -1,5 +1,5 @@
 .App {
-    color: black;
+    color: white;
     text-align: center;
 }
 
@@ -10,11 +10,14 @@
 .container {
   width: 400px;
   padding: 1rem;
-  background-color: black;
+  background-color: #121212;
 }
 
 .title {
-  color: white,
+  font-size: 32px;
+  color: #e5e5e5;
+  font-weight: bold;
+  font-family: 'Arial', sans-serif;
 }
 
 /* Style for the dropdown container */
@@ -57,26 +60,28 @@
 .regAddTabBtn {
   padding: 5px;
   border: 0px;
-  color: #1e1e1e;
+  background-color: #1e1e1e;
+  color: #e5e5e5;
 }
 
 .outlineAddTabBtn {
-  border: 2px solid blue;
   padding: 5px;
-  border: 0px;
-  color: #1e1e1e;
+  border: 2px solid #0077b6;
+  background-color: #1e1e1e;
+  color: #e5e5e5;
 }
 
 .addbtn {
   color: white;
   background-color: #023e8a;
-  outline: 0px;
-  height: 30px;
+  border: 0px;
+  height: 50px;
 }
 
 .button-row {
   display: flex;        /* Uses flexbox to lay out children */
-  justify-content: space-around; /* Distributes space around items */
+  /* justify-content: space-around; */
+  row-gap: 10;
   align-items: center;  /* Centers items vertically in the container */
 }
 

@@ -1,13 +1,44 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import Hello from "./components/Hello";
-import data from './example.json';
+
+interface Tab {
+  title: string | undefined;
+  url: string | undefined;
+}
+
+interface TabGroup {
+  groupName: string | undefined;
+  tabs: Tab[];
+}
+
+function callBackgroundFunction(action, data) {
+  console.log('hi');
+  return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action, data }, response => {
+        console.log('hi');
+          if (chrome.runtime.lastError) {
+              console.error("Background Error:", chrome.runtime.lastError.message);
+              reject(chrome.runtime.lastError);
+          } else {
+              console.log('hello');
+              resolve(response);
+          }
+      });
+  });
+}
 
 function App() {
   const [openDropdown, setOpenDropdown] = useState(null); // Track which dropdown is open
   const [makingGroup, setMakingGroup] = useState(false);
   const [allTabs, setAllTabs] = useState<{title: string | undefined; url: string | undefined, selected: boolean | undefined}[]>([]);
   const [groupName, setGroupName] = useState("");
+  const [groupTabs, setGroupTabs] = useState<{title: string | undefined; url: string | undefined}[]>([]);
+  const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
+  const [currentGroupNames, setCurrentGroupNames] = useState<string[]>([]);
+
+  // useEffect(() => {
+  //   getCurrentTabGroups();
+  // }, []); 
 
   const toggleDropdown = (index) => {
     setOpenDropdown(openDropdown === index ? null : index);
@@ -31,15 +62,17 @@ function App() {
   }
 
   const addGroup = () => {
-    var groupTabs = [];
+    setGroupTabs([]);
     for (let i = 0; i < allTabs.length; i += 1) {
       if (allTabs[i].selected) {
-        groupTabs.push({title: allTabs[i].title, url: allTabs[i].url});
+        setGroupTabs(groupTabs => [...groupTabs, {title: allTabs[i].title, url: allTabs[i].url}])
       }
     }
-    createTabGroup(groupName);
-    writeTabsToGroup(groupName, groupTabs);
+    callBackgroundFunction('createTabGroup', {name: groupName})
+    .catch(error => console.error('Error calling background function:', error));
+    // callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: groupTabs });
     cancelGroup();
+    // getCurrentTabGroups();
   }
 
   const newGroupTabSelected = (tab) => {
@@ -57,14 +90,25 @@ function App() {
     setGroupName(group.target.value);
   }
 
+  const getCurrentTabGroups = () => {
+    setTabGroups([]);
+    callBackgroundFunction('getAllGroupNames', {})
+    .then(response => setCurrentGroupNames(response as string[]));
+
+    for (let i = 0; i < currentGroupNames.length; i += 1) {
+      callBackgroundFunction('readTabsFromGroup',  currentGroupNames[i])
+      .then(response => setTabGroups([...tabGroups, response as TabGroup]));
+    }
+  }
+
   return (
     <div className="App">
-      <h1>Focus Tabs</h1>
+      <h1 className="title">Focus Tabs</h1>
       <ul>
-        {data.groups.map((group, index) => (
+        {tabGroups.map((group, index) => (
           <li key={index}>
             <div className="dropdown">
-              <button onClick={() => toggleDropdown(index)} className="dropbtn">{group.name}</button>
+              <button onClick={() => toggleDropdown(index)} className="dropbtn">{group.groupName}</button>
               <div className={openDropdown === index ? "dropdown-content show" : "dropdown-content"}>
                 {group.tabs.map((link, j) => (
                   <a key={j} href={link.url}>{link.title}</a>
@@ -103,7 +147,7 @@ function App() {
         </div>
       }
       {!makingGroup && 
-        <button onClick={() => getAllTabs()} className="addbtn">{"Add New Qroup"}</button>
+        <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
       }
     </div>
   );
