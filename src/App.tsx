@@ -38,7 +38,7 @@ function App() {
 
   useEffect(() => {
     getCurrentTabGroups();
-  }); 
+  }, [tabGroups]); 
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
@@ -95,19 +95,20 @@ function App() {
 
   const getCurrentTabGroups = () => {
     setTabGroups([]);
-    callBackgroundFunction('getAllTabsFromDatabase', {}).then(groups => {
-      Promise.all(
-        (groups as TabGroup[]).map(g =>
-          setTabGroups(tabGroups => [...tabGroups, g])
-          // callBackgroundFunction('readTabsFromGroup', groupName)
-        )
-      )
-        .then(responses => {
-          // const newTabGroups = responses.map(response => response as TabGroup);
-          // setTabGroups(newTabGroups);
-          // console.log(newTabGroups)
-        })
-        .catch(error => console.error('Error getting current tab groups:', error));
+    callBackgroundFunction('getAllTabsGroups', {}).then(groups => {
+      setTabGroups(groups as TabGroup[])
+      // Promise.all(
+      //   (groups as TabGroup[]).map(g =>
+      //     setTabGroups(tabGroups => [...tabGroups, g])
+      //     // callBackgroundFunction('readTabsFromGroup', groupName)
+      //   )
+      // )
+      //   .then(responses => {
+      //     // const newTabGroups = responses.map(response => response as TabGroup);
+      //     // setTabGroups(newTabGroups);
+      //     // console.log(newTabGroups)
+      //   })
+      //   .catch(error => console.error('Error getting current tab groups:', error));
     });
   };
   
