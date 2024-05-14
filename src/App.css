@@ -1,56 +1,74 @@
 .App {
-  color: #e0e0e0;  
+  color: #e0e0e0;  /* Lighter grey for better contrast */
   text-align: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More modern font */
 }
 
 .App ul {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 30px;            
+  gap: 30px;            /* Increased gap for better spacing */
   padding: 0;
   margin: 20px;
   list-style-type: none;
   justify-content: center;
-  align-items: center;  
+  align-items: center;  /* New addition for vertical alignment */
 }
 
 .App li {
   margin: 0;
-  padding: ;
-  min-width: 100px;    
-  max-width: 200px;     
+  padding: 20;
+  min-width: 100px;     /* New minimum width */
+  max-width: 200px;     /* New maximum width */
 }
 
 
 .container {
 width: 400px;
 padding: 1rem;
-background-color: #202020; 
-border-radius: 8px;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+background-color: #202020; /* Slightly lighter background for the container */
+border-radius: 8px; /* Rounded corners for the container */
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 list-style-type: none;
 }
 
 .title {
 font-size: 32px;
-color: #f0f0f0; 
+color: #f0f0f0; /* Slightly off-white color for better readability */
 font-weight: bold;
+}
+
+
+.text2 {
+  font-size: 24px;
+  color: #F0F0F0;
+  font-weight: bold;
+}
+
+.text3 {
+  font-size: 20px;
+  color: #F0F0F0; 
+  font-weight: bold;
+}
+
+.text4 {
+  font-size: 14x;
+  color: #F0F0F0;
+  font-weight: normal;
 }
 
 /* General button styles for uniformity */
 .button, .dropbtn, .regAddTabBtn, .outlineAddTabBtn, .addbtn {
-padding: 10px 15px;
-min-width: 120px; 
-height: 40px; 
-font-size: 16px; 
-text-align: center;
-border: none; 
-color: #ffffff;
-cursor: pointer; 
-border-radius: 5px; 
-margin: 0 5px; 
+padding: 10px 15px; /* Consistent padding */
+min-width: 120px; /* Minimum width for all buttons */
+font-size: 16px; /* Consistent font size */
+text-align: center; /* Center text */
+border: none; /* Remove borders */
+color: #ffffff; /* White text */
+cursor: pointer; /* Pointer cursor on hover */
+border-radius: 5px; /* Rounded corners */
+margin: 0 5px; /* Horizontal margin to avoid touching */
 }
 
 .dropdown-content {
@@ -60,8 +78,8 @@ background-color: #f9f9f9;
 min-width: 160px;
 box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 z-index: 1;
-border-radius: 5px; 
-margin-top: 25px;
+border-radius: 5px; /* Rounded corners for dropdown */
+margin-top: 25px; /* Small space between the dropdown button and the content */
 list-style-type: none;
 }
 
@@ -101,4 +119,24 @@ align-items: center; /* Align buttons vertically */
 gap: 20px; /* Space between buttons */
 list-style-type: none;
 margin: 20px;
+}
+
+
+/* delete button stuff */
+.delete-btn {
+  padding: 5px 8px;      
+  font-size: 16px;      
+  color: white;          
+  background-color: red; 
+  border: none;         
+  cursor: pointer;      
+  border-radius: 50%;    
+  line-height: 1;        
+  display: inline-flex; 
+  align-items: center;   
+  justify-content: center; 
+}
+
+.delete-btn:hover {
+  background-color: darkred; /* Darker red on hover for feedback */
 }
