@@ -105,12 +105,11 @@ function App() {
   };
   
   async function makeAIGrouping() {
-    const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
-    if (groups.result.length == 0) {
+    if (getApiKey() == '') {
       setAIGrouping([{groupName: "Error with Open AI Suggestions", tabs: []}]);
     }
-
     else {
+      const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
       setAIGrouping(groups.result)
     }
   };
@@ -125,8 +124,9 @@ function App() {
   
       for (const group of aiGrouping) {
         await callBackgroundFunction('writeTabsToGroup', { groupName: group.groupName, tabObjects: group.tabs });
-        cancelGroup();
       }
+
+      cancelGroup();
   
       getCurrentTabGroups();
     } catch (error) {
@@ -148,6 +148,11 @@ function App() {
     chrome.windows.create({ url: urls, focused: true });
   };
 
+  const storeAPIKey = () => {
+    setApiKey(APIKey);
+    getCurrentTabGroups();
+  }
+
   return (
     <div className="App">
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
@@ -164,11 +169,6 @@ function App() {
                 <button onClick={() => removeGroup(index)} className="delete-btn">
                 x
                 </button>
-                <div className={openDropdown === index ? "dropdown-content show" : "dropdown-content"}>
-                  {group.tabs.map((link, j) => (
-                    <a key={j} href={link.url} target="_blank" rel="noopener noreferrer">{link.title}</a>
-                  ))}
-                </div>
               </div>
             </li>
           ))
@@ -199,71 +199,113 @@ function App() {
               </button>);
         })}
       </div>
-      {(makingGroup) && 
+      {(makingGroup || aiGrouping.length > 0) && 
         <div className="button-row">
           <button onClick={() => addGroup()} className="addbtn">{"Add Group"}</button>
           <button onClick={() => cancelGroup()} className="addbtn">{"Cancel Group"}</button>
         </div>
       }
-     {!makingGroup && aiGrouping.length == 0 &&
 
-      <div>
-        <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
-        <button onClick={() => makeAIGrouping()} className="addbtn">{"AI Tab Grouping"}</button>
-      </div>
-      }
-      {aiGrouping.length > 0 && (getApiKey() == '') && (
-      <div>
-        <h3>Enter OpenAI API Key</h3>
-        <input
-            type="text"
-            value={APIKey}
-            // onChange={e => setAPIKey(e.target.value)}
-            placeholder="Enter API Key"
-          />
-      </div>
-      )}
-      {aiGrouping.length > 0 && (getApiKey() != '') && (
-      <div>
-        <h2 className="text2">AI Tab Grouping Suggestions</h2>
-        <ul>
-          {aiGrouping.map((group, index) => (
-            <li key={index}>
-              <div className="ai-group">
-                <h2 className="text3">{group.groupName}</h2>
-                {/* <button key={index} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
-                  <i className="material-icons">add</i>
-                  <i onClick={() => setGroupName(group.groupName || '')}></i>
-                </button> */}
-              </div>
-              {group.tabs.map((tab, j) => (
-                <div className={"ai-group-link"}>
-                  <h3 className="text4">{tab.title}</h3>
-                  {/* <button key={j} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
-                    <i className="material-icons">close</i>
-                    <i onClick={() => group.tabs.filter((_, tabIdx) => tabIdx !== j)}></i>
-                  </button> */}
-                </div>
-              ))}
-            </li>
-          ))}
-        </ul>
-      </div>
-      )}
-      {(aiGrouping.length > 0) && (getApiKey() != '') &&
-              <div className="button-row">
-                <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
-                <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
-              </div>
-      }
-      {(aiGrouping.length > 0) && (getApiKey() == '') &&
-      <div className="button-row">
-        {/* <button onClick={() => storeAPIKey()} className="addbtn">{"Save API Key"}</button> */}
-        <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
-      </div>
-      }
-    </div>
-  );
+{!makingGroup && aiGrouping.length == 0 &&
+
+<div>
+
+  <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
+
+  <button onClick={() => makeAIGrouping()} className="addbtn">{"AI Tab Grouping"}</button>
+
+</div>
+
+}
+
+{aiGrouping.length > 0 && (getApiKey() == '') && (
+
+<div>
+
+  <h3>Enter OpenAI API Key</h3>
+
+  <input
+
+      type="text"
+
+      value={APIKey}
+
+      onChange={e => setAPIKey(e.target.value)}
+
+      placeholder="Enter API Key"
+
+    />
+
+</div>
+
+)}
+
+{aiGrouping.length > 0 && (getApiKey() != '') && (
+
+<div>
+
+  <h2 className="text2">AI Tab Grouping Suggestions</h2>
+
+  <ul>
+
+    {aiGrouping.map((group, index) => (
+
+      <li key={index}>
+
+        <div className="ai-group">
+
+          <h2 className="text3">{group.groupName}</h2>
+
+          {/* <button key={index} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
+
+            <i className="material-icons">add</i>
+
+            <i onClick={() => setGroupName(group.groupName || '')}></i>
+
+          </button> */}
+
+        </div>
+
+        {group.tabs.map((tab, j) => (
+
+          <div className={"ai-group-link"}>
+
+            <h3 className="text4">{tab.title}</h3>
+
+            {/* <button key={j} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
+
+              <i className="material-icons">close</i>
+
+              <i onClick={() => group.tabs.filter((_, tabIdx) => tabIdx !== j)}></i>
+
+            </button> */}
+
+          </div>
+
+        ))}
+
+      </li>
+
+    ))}
+
+  </ul>
+</div>
+)}
+
+{(aiGrouping.length > 0) && (getApiKey() != '') &&
+<div className="button-row">
+  <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
+  <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
+</div>
+}
+{(aiGrouping.length > 0) && (getApiKey() == '') &&
+<div className="button-row">
+  <button onClick={() => storeAPIKey()} className="addbtn">{"Save API Key"}</button>
+  <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
+</div>
+}
+</div>
+);
 }
 
 export default App;
