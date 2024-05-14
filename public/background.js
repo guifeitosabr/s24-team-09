@@ -205,7 +205,7 @@ const operations = {
             const db = await dbPromise;
             const tx = db.transaction('tabs', 'readonly');
             const index = tx.objectStore('tabs').index('group');
-            const range = IDBKeyRange.only(groupName.name);
+            const range = IDBKeyRange.only(groupName);
             const tabs = [];
     
             await new Promise((resolve, reject) => {
@@ -224,11 +224,11 @@ const operations = {
                 };
             });
 
-            console.log(`Read tabs from ${groupName.name}`)
+            console.log(`Read tabs from ${groupName}`)
     
             return tabs;
         } catch (err) {
-            console.error(`Error reading tabs from group ${groupName.name}:`, err);
+            console.error(`Error reading tabs from group ${groupName}:`, err);
             return [];
         }
     },
@@ -400,21 +400,26 @@ const operations = {
     },
 
       async getSuggestedTabGroups() {
-        try {
-            const tabObjects = await this.getAllTabsFromDatabase()
-            const groups = await groupTabsByContent(tabObjects.map(tab => ({ title: tab.title, url: tab.url })));
-            const filteredGroups = groups.filter(group => group.length > 1);
-            const groupedTabs = filteredGroups.map(async (group, index) => {
-                const name = await suggestedGroupName(group);
-                return {
-                    name: name,
-                    tabs: group
-                };
-            });
-    
-            return await Promise.all(groupedTabs);
-        } catch (error) {
-            throw new Error('Error:', error);
+        const tabObjects = await this.getAllTabsFromDatabase()
+        if (tabObjects.length === 0) {
+            return;
+        }
+        else {
+            try {
+                const groups = await groupTabsByContent(tabObjects.map(tab => ({ title: tab.title, url: tab.url })));
+                const filteredGroups = groups.filter(group => group.length > 1);
+                const groupedTabs = filteredGroups.map(async (group, index) => {
+                    const name = await suggestedGroupName(group);
+                    return {
+                        name: name,
+                        tabs: group
+                    };
+                });
+        
+                return await Promise.all(groupedTabs);
+            } catch (error) {
+                throw new Error('Error:', error);
+            }
         }
     }
 }
