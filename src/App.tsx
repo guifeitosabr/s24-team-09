@@ -126,14 +126,12 @@ function App() {
     }
   };
 
-  /*
-  const openAllTabsInGroup = (tabs) => {
-    // Directly using chrome.tabs API to open tabs
-    tabs.forEach(tab => {
-      chrome.tabs.create({ url: tab.url, active: false });
-    });
+  async function removeGroup(index) {
+    const updatedGroups = tabGroups.filter((_, i) => i !== index);
+    setTabGroups(updatedGroups);
+    // const result = await callBackgroundFunction('removeGroup', { groupName: tabGroups[index].groupName })
   };
-  */
+
 
   const openTabsInNewWindow = (tabs) => {
     // Collect all URLs from the tabs
@@ -155,6 +153,9 @@ function App() {
                   toggleDropdown(index);
                   openTabsInNewWindow(group.tabs);
                 }} className="dropbtn">{group.groupName}</button>
+                <button onClick={() => removeGroup(index)} className="delete-btn">
+                x
+                </button>
                 <div className={openDropdown === index ? "dropdown-content show" : "dropdown-content"}>
                   {group.tabs.map((link, j) => (
                     <a key={j} href={link.url} target="_blank" rel="noopener noreferrer">{link.title}</a>
