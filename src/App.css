@@ -1,94 +1,104 @@
 .App {
-    color: white;
-    text-align: center;
+  color: #e0e0e0;  
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 }
 
-.show {
-  display: block;
+.App ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 30px;            
+  padding: 0;
+  margin: 20px;
+  list-style-type: none;
+  justify-content: center;
+  align-items: center;  
 }
+
+.App li {
+  margin: 0;
+  padding: ;
+  min-width: 100px;    
+  max-width: 200px;     
+}
+
 
 .container {
-  width: 400px;
-  padding: 1rem;
-  background-color: #121212;
+width: 400px;
+padding: 1rem;
+background-color: #202020; 
+border-radius: 8px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+list-style-type: none;
 }
 
 .title {
-  font-size: 32px;
-  color: #e5e5e5;
-  font-weight: bold;
-  font-family: 'Arial', sans-serif;
+font-size: 32px;
+color: #f0f0f0; 
+font-weight: bold;
 }
 
-/* Style for the dropdown container */
-.dropdown {
-  position: relative;
-  display: inline-block;
+/* General button styles for uniformity */
+.button, .dropbtn, .regAddTabBtn, .outlineAddTabBtn, .addbtn {
+padding: 10px 15px;
+min-width: 120px; 
+height: 40px; 
+font-size: 16px; 
+text-align: center;
+border: none; 
+color: #ffffff;
+cursor: pointer; 
+border-radius: 5px; 
+margin: 0 5px; 
 }
 
-/* Style for the button */
-.dropbtn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-}
-
-/* Dropdown content (hidden by default) */
 .dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+display: none;
+position: absolute;
+background-color: #f9f9f9;
+min-width: 160px;
+box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+z-index: 1;
+border-radius: 5px; 
+margin-top: 25px;
+list-style-type: none;
 }
 
-/* Links inside the dropdown */
 .dropdown-content a {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
+color: black;
+padding: 12px 16px;
+text-decoration: none;
+display: block;
 }
 
-/* Change color of dropdown links on hover */
 .dropdown-content a:hover {background-color: #f1f1f1}
 
-.regAddTabBtn {
-  padding: 5px;
-  border: 0px;
-  background-color: #1e1e1e;
-  color: #e5e5e5;
+/* Specific styles for different button types */
+.dropbtn {
+background-color: #0511ff;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+.regAddTabBtn, .outlineAddTabBtn {
+background-color: #262626; /* Darker background for regular buttons */
 }
 
 .outlineAddTabBtn {
-  padding: 5px;
-  border: 2px solid #0077b6;
-  background-color: #1e1e1e;
-  color: #e5e5e5;
+border: 2px solid #0077b6; /* Blue border for outline button */
 }
 
 .addbtn {
-  color: white;
-  background-color: #023e8a;
-  border: 0px;
-  height: 50px;
+background-color: #023e8a; /* Blue background for add button */
 }
 
-.button-row {
-  display: flex;        /* Uses flexbox to lay out children */
-  /* justify-content: space-around; */
-  row-gap: 10;
-  align-items: center;  /* Centers items vertically in the container */
-}
-
-.newtabs-container {
-  padding: 10px 10px 10px 10px;
-  display: flex;        /* Enables flexbox */
-  flex-wrap: wrap;      /* Allows items to wrap onto the next line */
-  justify-content: flex-start; /* Aligns items to the start of the flex line */
-  gap: 5px;            /* Space between buttons */
+/* Container holding buttons */
+.button-row, .newtabs-container {
+display: flex;
+flex-wrap: wrap;
+justify-content: center; /* Center buttons horizontally */
+align-items: center; /* Align buttons vertically */
+gap: 20px; /* Space between buttons */
+list-style-type: none;
+margin: 20px;
 }
