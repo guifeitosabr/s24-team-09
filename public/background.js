@@ -3,7 +3,7 @@
 let OpenAI_API_KEY = ''
 
 function setApiKey(key) {
-    OpenAI_API_KEY  = key;
+    OpenAI_API_KEY = key;
 }
 
 function getApiKey() {
@@ -122,11 +122,13 @@ async function suggestedGroupName(tabObjects) {
 
         const data = await completion.json();
 
-        console.log(data.choices[0].text)
+        const l = (data.choices[0].text).length
 
         console.log(prompt)
 
-        const generatedName = data.choices[0].text
+        const generatedName = (data.choices[0].text).substring(2, l - 1);
+
+        console.log(generatedName)
 
         return generatedName;
     } catch (error) {
@@ -418,7 +420,7 @@ const operations = {
                 const groupedTabs = filteredGroups.map(async (group, index) => {
                     const name = await suggestedGroupName(group);
                     return {
-                        name: name,
+                        groupName: name,
                         tabs: group
                     };
                 });
@@ -428,7 +430,55 @@ const operations = {
                 throw new Error('Error:', error);
             }
         }
+    },
+
+    /*
+    async removeGroup(groupName) {
+        const db = await dbPromise; // Ensure you have access to the IndexedDB instance
+        const tx = db.transaction(['tabGroups', 'tabs'], 'readwrite'); // Start a transaction that involves both stores
+        const groupStore = tx.objectStore('tabGroups');
+        const tabStore = tx.objectStore('tabs');
+        const tabIndex = tabStore.index('group'); // Assuming you have an index by 'group'
+    
+        try {
+            // Delete the group
+            await groupStore.delete(groupName);
+    
+            // Check and delete tabs only associated with this group
+            const range = IDBKeyRange.only(groupName);
+            const cursorRequest = tabIndex.openCursor(range);
+            cursorRequest.onsuccess = async event => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const tab = cursor.value;
+                    // Check if this tab belongs to any other group
+                    const checkCursorRequest = tabStore.openCursor();
+                    let isUniqueToGroup = true;
+                    checkCursorRequest.onsuccess = event => {
+                        const checkCursor = event.target.result;
+                        if (checkCursor) {
+                            if (checkCursor.value.url === tab.url && checkCursor.value.group !== groupName) {
+                                isUniqueToGroup = false;
+                            }
+                            checkCursor.continue();
+                        }
+                    };
+                    await tx.complete; // Wait for all checks to complete
+                    if (isUniqueToGroup) {
+                        cursor.delete(); // Delete the tab if only linked to the removed group
+                    }
+                    cursor.continue(); // Move to the next tab
+                }
+            };
+    
+            await tx.complete; // Ensure all operations are completed before resolving
+            console.log(`Group '${groupName}' has been removed successfully. Associated tabs checked and removed if unique.`);
+        } catch (error) {
+            console.error(`Error removing group '${groupName}':`, error);
+            throw error; // Throw error so that it can be caught by the message listener
+        }
     }
+    */
 }
 
 
