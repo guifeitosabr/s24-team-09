@@ -118,29 +118,28 @@ function App() {
       //   .catch(error => console.error('Error getting current tab groups:', error));
   };
   
-  const makeAIGrouping = () => {
-    setAIGrouping([]);
-    callBackgroundFunction('getSuggestedTabGroups', {})
-    .then(response => {
-      (response as TabGroup[]).map(group =>
-        setAIGrouping(prevGrouping => [...prevGrouping, group])
-      );
-    })
+  async function makeAIGrouping() {
+    const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
+    console.log("bruhhhhh", groups.result);
+    setAIGrouping(groups.result)
   };
 
-  const saveAIGroups = () => {
-    Promise.all(
-      aiGrouping.map(group =>
-        callBackgroundFunction('createTabGroup', group.groupName)
-      )
-    )
-      .then(() => {
+  async function saveAIGroups() {
+    try {
+      await Promise.all(
         aiGrouping.map(group =>
-          callBackgroundFunction('writeTabsToGroup', { groupName: group.groupName, tabObjects: group.tabs })
+          callBackgroundFunction('createTabGroup', group.groupName)
         )
-      })
-      .catch(error => console.error('Error getting current tab groups:', error));
+      );
+  
+      for (const group of aiGrouping) {
+        await callBackgroundFunction('writeTabsToGroup', { groupName: group.groupName, tabObjects: group.tabs });
+      }
+  
       getCurrentTabGroups();
+    } catch (error) {
+      console.error('Error saving AI groups:', error);
+    }
   };
 
   return (
