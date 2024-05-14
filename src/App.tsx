@@ -33,19 +33,19 @@ function App() {
   const [allTabs, setAllTabs] = useState<{title: string | undefined; url: string | undefined, selected: boolean | undefined}[]>([]);
   const [groupName, setGroupName] = useState("");
   const [groupTabs, setGroupTabs] = useState<Tab[]>([]);
-  const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
+  const [tabGroups, setTabGroups] = useState([]);
   const [aiGrouping, setAIGrouping] = useState<TabGroup[]>([]);
 
   useEffect(() => {
     getCurrentTabGroups();
-  }, [tabGroups]); 
+  }, []); 
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
   };
 
   const getAllTabs = () => {
-    setMakingGroup(!makingGroup);
+    setMakingGroup(true);
     chrome.tabs.query({}, function(tabs) {
       tabs.forEach(tab => {
         console.log(tab.title);
@@ -56,7 +56,7 @@ function App() {
   };
 
   const cancelGroup = () => {
-    setMakingGroup(!makingGroup);
+    setMakingGroup(false);
     setAllTabs([]);
     setGroupName("");
     setAIGrouping([]);
@@ -67,8 +67,8 @@ function App() {
 
     callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs })
       .then(() => {
-        cancelGroup();
-        getCurrentTabGroups();
+        cancelGroup(),
+        getCurrentTabGroups()
       });
 
     // callBackgroundFunction('createTabGroup', groupName)
@@ -93,10 +93,11 @@ function App() {
     }));
   };
 
-  const getCurrentTabGroups = () => {
-    setTabGroups([]);
-    callBackgroundFunction('getAllTabsGroups', {}).then(groups => {
-      setTabGroups(groups as TabGroup[])
+  async function getCurrentTabGroups() {
+    // setTabGroups([]);
+    const groups = await callBackgroundFunction('getAllGroups', {});
+      // setTabGroups(tabGroups => [...tabGroups, ...groups]);
+    setTabGroups(groups);
       // Promise.all(
       //   (groups as TabGroup[]).map(g =>
       //     setTabGroups(tabGroups => [...tabGroups, g])
@@ -109,7 +110,6 @@ function App() {
       //     // console.log(newTabGroups)
       //   })
       //   .catch(error => console.error('Error getting current tab groups:', error));
-    });
   };
   
   const makeAIGrouping = () => {

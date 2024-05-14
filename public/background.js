@@ -375,26 +375,34 @@ const operations = {
       },
 
       async getAllGroups() {
-        try {
-            const tabObjects = await getAllTabsFromDatabase();
+        console.log("getting groups");
+        const tabObjects = await this.getAllTabsFromDatabase();
+        console.log(tabObjects);
+        if (tabObjects.length > 0) {
+            try {
+                const groups = {};
+        
+                tabObjects.forEach(tab => {
+                    if (!groups[tab.group]) {
+                        groups[tab.group] = [];
+                    }
+                    groups[tab.group].push({ title: tab.title, url: tab.url });
+                });
+        
+                const formattedGroups = Object.keys(groups).map(groupName => ({
+                    groupName: groupName,
+                    tabs: groups[groupName]
+                }));
     
-            const groups = {};
-    
-            tabObjects.forEach(tab => {
-                if (!groups[tab.group]) {
-                    groups[tab.group] = [];
-                }
-                groups[tab.group].push({ title: tab.title, url: tab.url });
-            });
-    
-            const formattedGroups = Object.keys(groups).map(groupName => ({
-                name: groupName,
-                tabs: groups[groupName]
-            }));
-    
-            return formattedGroups;
-        } catch (error) {
-            console.error('Error getting formatted groups list:', error);
+                console.log(formattedGroups);
+                console.log(formattedGroups[0].tabs);
+                return formattedGroups;
+            } catch (error) {
+                console.error('Error getting formatted groups list:', error);
+                return [];
+            }
+        }
+        else {
             return [];
         }
     },
