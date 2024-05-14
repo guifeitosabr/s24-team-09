@@ -120,7 +120,6 @@ function App() {
   
   async function makeAIGrouping() {
     const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
-    console.log("bruhhhhh", groups.result);
     setAIGrouping(groups.result)
   };
 
