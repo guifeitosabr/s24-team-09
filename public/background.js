@@ -1,5 +1,3 @@
-let dbPromise;
-
 // OPENAI Stuff
 
 let OpenAI_API_KEY = ''
@@ -134,6 +132,7 @@ async function suggestedGroupName(tabObjects) {
 }
 
 // IndexedDB Stuff
+let dbPromise = initializeDatabase();
 
 async function initializeDatabase() {
     return new Promise((resolve, reject) => {
@@ -141,14 +140,17 @@ async function initializeDatabase() {
         request.onerror = (event) => {
             reject('Error opening database');
         };
-        request.onsuccess = (event) => {
-            resolve(event.target.result);
-        };
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
-            db.createObjectStore('tabGroups', { keyPath: 'name' });
-            db.createObjectStore('tabs', { keyPath: 'id', autoIncrement: true })
-                .createIndex('group', 'group');
+            if (!db.objectStoreNames.contains('tabGroups')) {
+                db.createObjectStore('tabGroups', { keyPath: 'name' });
+            }
+            if (!db.objectStoreNames.contains('tabs')) {
+                db.createObjectStore('tabs', { keyPath: 'id', autoIncrement: true }).createIndex('group', 'group');
+            }
+        };
+        request.onsuccess = (event) => {
+            resolve(event.target.result);
         };
     });
 }
@@ -375,40 +377,33 @@ const operations = {
       },
 
       async getAllGroups() {
-        console.log("getting groups");
-        const tabObjects = await this.getAllTabsFromDatabase();
-        console.log(tabObjects);
-        if (tabObjects.length > 0) {
-            try {
-                const groups = {};
-        
-                tabObjects.forEach(tab => {
-                    if (!groups[tab.group]) {
-                        groups[tab.group] = [];
-                    }
-                    groups[tab.group].push({ title: tab.title, url: tab.url });
-                });
-        
-                const formattedGroups = Object.keys(groups).map(groupName => ({
-                    groupName: groupName,
-                    tabs: groups[groupName]
-                }));
+        try {
+            const tabObjects = await this.getAllTabsFromDatabase();
     
-                console.log(formattedGroups);
-                console.log(formattedGroups[0].tabs);
-                return formattedGroups;
-            } catch (error) {
-                console.error('Error getting formatted groups list:', error);
-                return [];
-            }
-        }
-        else {
+            const groups = {};
+    
+            tabObjects.forEach(tab => {
+                if (!groups[tab.group]) {
+                    groups[tab.group] = [];
+                }
+                groups[tab.group].push({ title: tab.title, url: tab.url });
+            });
+    
+            const formattedGroups = Object.keys(groups).map(groupName => ({
+                groupName: groupName,
+                tabs: groups[groupName]
+            }));
+    
+            return formattedGroups;
+        } catch (error) {
+            console.error('Error getting formatted groups list:', error);
             return [];
         }
     },
 
       async getSuggestedTabGroups() {
         const tabObjects = await this.getAllTabsFromDatabase()
+
         if (tabObjects.length === 0) {
             return;
         }
