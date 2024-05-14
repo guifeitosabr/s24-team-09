@@ -6,6 +6,10 @@ function setApiKey(key) {
     OpenAI_API_KEY  = key;
 }
 
+function getApiKey() {
+    return OpenAI_API_KEY;
+}
+
 const SIMILARITY_THRESHOLD = 0.3;
 
 const tabEmbeddings = {}; 
