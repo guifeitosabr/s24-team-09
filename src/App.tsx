@@ -40,6 +40,11 @@ function App() {
     getCurrentTabGroups();
   }, []); 
 
+  useEffect(() => {
+    console.log("tabGroups", tabGroups)
+    console.log("length: ", tabGroups.length);
+}, [tabGroups]);
+
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
   };
@@ -96,8 +101,9 @@ function App() {
   async function getCurrentTabGroups() {
     // setTabGroups([]);
     const groups = await callBackgroundFunction('getAllGroups', {});
+    console.log("bruhhhhh", groups.result);
       // setTabGroups(tabGroups => [...tabGroups, ...groups]);
-    setTabGroups(groups);
+    setTabGroups(groups.result)
       // Promise.all(
       //   (groups as TabGroup[]).map(g =>
       //     setTabGroups(tabGroups => [...tabGroups, g])
