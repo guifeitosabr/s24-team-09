@@ -99,23 +99,8 @@ function App() {
   };
 
   async function getCurrentTabGroups() {
-    // setTabGroups([]);
     const groups = await callBackgroundFunction('getAllGroups', {});
-    console.log("bruhhhhh", groups.result);
-      // setTabGroups(tabGroups => [...tabGroups, ...groups]);
     setTabGroups(groups.result)
-      // Promise.all(
-      //   (groups as TabGroup[]).map(g =>
-      //     setTabGroups(tabGroups => [...tabGroups, g])
-      //     // callBackgroundFunction('readTabsFromGroup', groupName)
-      //   )
-      // )
-      //   .then(responses => {
-      //     // const newTabGroups = responses.map(response => response as TabGroup);
-      //     // setTabGroups(newTabGroups);
-      //     // console.log(newTabGroups)
-      //   })
-      //   .catch(error => console.error('Error getting current tab groups:', error));
   };
   
   async function makeAIGrouping() {
@@ -141,27 +126,46 @@ function App() {
     }
   };
 
+  /*
+  const openAllTabsInGroup = (tabs) => {
+    // Directly using chrome.tabs API to open tabs
+    tabs.forEach(tab => {
+      chrome.tabs.create({ url: tab.url, active: false });
+    });
+  };
+  */
+
+  const openTabsInNewWindow = (tabs) => {
+    // Collect all URLs from the tabs
+    const urls = tabs.map(tab => tab.url);
+    // Use chrome.windows.create to open all tabs in a new window
+    chrome.windows.create({ url: urls, focused: true });
+  };
+
   return (
     <div className="App">
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
       <h1 className="title">Focus Tabs</h1>
       <ul>
-      {tabGroups.length > 0 ? (
-        tabGroups.map((group, index) => (
-          <li key={index}>
-            <div className="dropdown">
-              <button onClick={() => toggleDropdown(index)} className="dropbtn">{group.groupName}</button>
-              <div className={openDropdown === index ? "dropdown-content show" : "dropdown-content"}>
-                {group.tabs.map((link, j) => (
-                  <a key={j} href={link.url}>{link.title}</a>
-                ))}
+        {tabGroups.length > 0 ? (
+          tabGroups.map((group, index) => (
+            <li key={index}>
+              <div className="dropdown">
+                <button onClick={() => {
+                  toggleDropdown(index);
+                  openTabsInNewWindow(group.tabs);
+                }} className="dropbtn">{group.groupName}</button>
+                <div className={openDropdown === index ? "dropdown-content show" : "dropdown-content"}>
+                  {group.tabs.map((link, j) => (
+                    <a key={j} href={link.url} target="_blank" rel="noopener noreferrer">{link.title}</a>
+                  ))}
+                </div>
               </div>
-            </div>
-          </li>
-        ))
-      ) : (
-        <li>No tab groups available</li>
-      )}
+            </li>
+          ))
+        ) : (
+          <li>No tab groups available</li>
+        )}
       </ul>
       {makingGroup && (
         <div>
