@@ -51,6 +51,6 @@ FocusTabs is a Chrome extension designed to enhance productivity by helping user
 Authors: Anirudh Bharadwaj, Eshan Singhal, Guilherme Feitosa, and Kofi Addae-Sakyi.
 Acknowledgments: We would like to thank Professor Jérémie O. Lumbroso for his fundamental mentorship all throughout the development of FocusTabs.
 
-###Contact
+### Contact
 If you have any questions about the landing page, please, feel free to open an issue [here](https://github.com/guifeitosabr/s24-team-09/issues/new).
 
