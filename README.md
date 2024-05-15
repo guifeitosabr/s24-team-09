@@ -43,4 +43,4 @@ FocusTabs is a Chrome extension designed to enhance productivity by helping user
 
    - Open Chrome and navigate to `chrome://extensions`
    - Enable "Developer mode"
-   - Click "Load unpacked" and select the `dist` directory from the project directory.
+   - Click "Load unpacked" and select the `dist` directory from this project directory.
