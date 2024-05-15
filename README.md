@@ -1,6 +1,6 @@
 # FocusTabs
 
-FocusTabs is a Chrome extension designed to enhance productivity by helping users organize their browsing experience more efficiently. With the ever-growing number of tabs open in our browsers, it's easy to lose track of important information and tasks. FocusTabs aims to solve this problem by allowing users to group tabs based on topics, projects, or any custom category they desire. You can find the landing page for our extension [here](https://focus-tabs.com/) and our blog post deliverable [here](https://medium.com/@anirudh2/cis-3500-group-9-blog-post-4130e5e30681). 
+FocusTabs is a Chrome extension designed to enhance productivity by helping users organize their browsing experience more efficiently. With the ever-growing number of tabs open in our browsers, it's easy to lose track of important information and tasks. FocusTabs aims to solve this problem by allowing users to group tabs based on topics, projects, or any custom category they desire. You can find the landing page for our extension [here](https://focus-tabs.com/) (and the repository associated with it [here](https://github.com/guifeitosabr/s24-team-09-landing-page)) and our blog post deliverable [here](https://medium.com/@anirudh2/cis-3500-group-9-blog-post-4130e5e30681). 
 
 ## Key Features:
 1. Manual Grouping: Users can manually create and manage groups to organize their tabs according to their workflow or interests.
