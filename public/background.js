@@ -2,14 +2,6 @@
 
 let OpenAI_API_KEY = ''
 
-function setApiKey(key) {
-    OpenAI_API_KEY = key;
-}
-
-function getApiKey() {
-    return OpenAI_API_KEY;
-}
-
 const SIMILARITY_THRESHOLD = 0.3;
 
 const tabEmbeddings = {}; 
@@ -45,7 +37,6 @@ async function calculateSimilarity(embedding1, embedding2) {
 
     const similarity = embedding1.reduce((acc, val, i) => acc + val * embedding2[i], 0);
 
-    console.log(similarity)
     return similarity;
 }
 
@@ -124,11 +115,7 @@ async function suggestedGroupName(tabObjects) {
 
         const l = (data.choices[0].text).length
 
-        console.log(prompt)
-
         const generatedName = (data.choices[0].text).substring(2, l - 1);
-
-        console.log(generatedName)
 
         return generatedName;
     } catch (error) {
@@ -186,7 +173,6 @@ async function fetchAndProcessContent(url) {
                 }
             });
         });
-        console.log('Content:', content);
         // Perform further processing with the content
     } catch (error) {
         console.error('Error fetching and processing content:', error);
@@ -194,6 +180,15 @@ async function fetchAndProcessContent(url) {
 }
 
 const operations = {
+
+    async getApiKey() {
+        return OpenAI_API_KEY;
+    },
+
+    async setApiKey(key) {
+        OpenAI_API_KEY = key.key;
+        return key;
+    },
 
     async createTabGroup(data) {
         try {
