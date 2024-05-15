@@ -12,15 +12,12 @@ interface TabGroup {
 }
 
 function callBackgroundFunction(action, data) {
-  console.log('hi');
   return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ action, data }, response => {
-        console.log('hi');
           if (chrome.runtime.lastError) {
               console.error("Background Error:", chrome.runtime.lastError.message);
               reject(chrome.runtime.lastError);
           } else {
-              console.log('hello');
               resolve(response);
           }
       });
@@ -34,17 +31,13 @@ function App() {
   const [groupName, setGroupName] = useState("");
   const [groupTabs, setGroupTabs] = useState<Tab[]>([]);
   const [tabGroups, setTabGroups] = useState([]);
-  const [aiGrouping, setAIGrouping] = useState<TabGroup[]>([]);
-  const [APIKey, setAPIKey] = useState("");
+  const [aiGrouping, setAIGrouping] = useState([]);
+  const [APIKey, setAPIKey] = useState('');
+  const [tempAPIKey, setTempAPIKey] = useState('');
 
   useEffect(() => {
     getCurrentTabGroups();
   }, []); 
-
-  useEffect(() => {
-    console.log("tabGroups", tabGroups)
-    console.log("length: ", tabGroups.length);
-}, [tabGroups]);
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
@@ -54,7 +47,6 @@ function App() {
     setMakingGroup(true);
     chrome.tabs.query({}, function(tabs) {
       tabs.forEach(tab => {
-        console.log(tab.title);
         const newTab = {title: tab.title, url: tab.url, selected: false};
         setAllTabs(allTabs => [...allTabs, newTab]);
       });
@@ -105,8 +97,8 @@ function App() {
   };
   
   async function makeAIGrouping() {
-    if (getApiKey() == '') {
-      setAIGrouping([{groupName: "Error with Open AI Suggestions", tabs: []}]);
+    if (APIKey == '') {
+      setAIGrouping([{groupName: "No similar groupings found. Create more groups!", tabs: []}]);
     }
     else {
       const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
@@ -148,10 +140,26 @@ function App() {
     chrome.windows.create({ url: urls, focused: true });
   };
 
-  const storeAPIKey = () => {
-    setApiKey(APIKey);
-    getCurrentTabGroups();
+
+  async function storeAPIKey() {
+    setAPIKey(tempAPIKey);
   }
+
+  useEffect(() => {
+    const updateAPIKeyUsage = async () => {
+      if (APIKey) {
+        try {
+          const result = await callBackgroundFunction('setApiKey', { key: APIKey });
+          console.log('Background function called successfully:', result);
+        } catch (error) {
+          console.error('Error calling background function:', error);
+        }
+        makeAIGrouping(); 
+      }
+    };
+    updateAPIKeyUsage();
+  }, [APIKey]);  
+  
 
   return (
     <div className="App">
@@ -199,7 +207,7 @@ function App() {
               </button>);
         })}
       </div>
-      {(makingGroup || aiGrouping.length > 0) && 
+      {(makingGroup) && 
         <div className="button-row">
           <button onClick={() => addGroup()} className="addbtn">{"Add Group"}</button>
           <button onClick={() => cancelGroup()} className="addbtn">{"Cancel Group"}</button>
@@ -218,7 +226,7 @@ function App() {
 
 }
 
-{aiGrouping.length > 0 && (getApiKey() == '') && (
+{aiGrouping.length > 0 && (APIKey == '') && (
 
 <div>
 
@@ -230,7 +238,7 @@ function App() {
 
       value={APIKey}
 
-      onChange={e => setAPIKey(e.target.value)}
+      onChange={e => setTempAPIKey(e.target.value)}
 
       placeholder="Enter API Key"
 
@@ -240,7 +248,7 @@ function App() {
 
 )}
 
-{aiGrouping.length > 0 && (getApiKey() != '') && (
+{aiGrouping.length > 0 && (APIKey != '') && (
 
 <div>
 
@@ -292,13 +300,13 @@ function App() {
 </div>
 )}
 
-{(aiGrouping.length > 0) && (getApiKey() != '') &&
+{(aiGrouping.length > 0) && (APIKey != '') &&
 <div className="button-row">
   <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
   <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
 </div>
 }
-{(aiGrouping.length > 0) && (getApiKey() == '') &&
+{(aiGrouping.length > 0) && (APIKey == '') &&
 <div className="button-row">
   <button onClick={() => storeAPIKey()} className="addbtn">{"Save API Key"}</button>
   <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
