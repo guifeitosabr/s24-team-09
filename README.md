@@ -12,7 +12,7 @@ FocusTabs is a Chrome extension designed to enhance productivity by helping user
 
 ### Install From Release
 
-- Download the latest release from the [Releases](https://github.com/jlumbroso/chrome-extension-text-collector/releases)
+- Download the latest release from the [Releases](https://github.com/guifeitosabr/s24-team-09/releases)
 - Unzip the downloaded ZIP file
 - Open Chrome and navigate to `chrome://extensions`
 - Enable "Developer mode"
