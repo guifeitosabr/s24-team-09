@@ -66,9 +66,20 @@ font-size: 16px; /* Consistent font size */
 text-align: center; /* Center text */
 border: none; /* Remove borders */
 color: #ffffff; /* White text */
-cursor: pointer; /* Pointer cursor on hover */
 border-radius: 5px; /* Rounded corners */
 margin: 0 5px; /* Horizontal margin to avoid touching */
+cursor: pointer; /* Pointer cursor on hover */
+}
+
+.smallbtn {
+  padding: 5px 10px; /* Smaller padding */
+  font-size: 12px; /* Smaller font size */
+  text-align: center; /* Center text */
+  width: auto; /* Adjust width as needed */
+  height: auto; /* Adjust height as needed */
+  border-radius: 5px; /* Rounded corners */
+  margin: 3px 3px; /* Horizontal margin to avoid touching */
+  cursor: pointer; /* Pointer cursor on hover */
 }
 
 .dropdown-content {

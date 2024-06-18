@@ -124,6 +124,14 @@ async function suggestedGroupName(tabObjects) {
     }
 }
 
+/*
+async function groupCurrentTabs() {
+    const tabs = await chrome.tabs.query({});
+    const tabObjects = tabs.map(tab => ({ title: tab.title, url: tab.url }));
+    return await groupTabsByContent(tabObjects);
+}
+*/
+
 // IndexedDB Stuff
 let dbPromise = initializeDatabase();
 
@@ -179,7 +187,7 @@ async function fetchAndProcessContent(url) {
     }
 }
 
-const operations = {
+const operations = {  
 
     async getApiKey() {
         return OpenAI_API_KEY;
@@ -189,6 +197,12 @@ const operations = {
         OpenAI_API_KEY = key.key;
         return key;
     },
+
+    /*
+    groupCurrentTabs: async () => {
+        return await groupCurrentTabs();
+    },
+    */
 
     async createTabGroup(data) {
         try {
@@ -427,7 +441,31 @@ const operations = {
         }
     },
 
-    /*
+    async getSuggestedOpenTabs() {
+        const tabObjects = await chrome.tabs.query({});
+
+        if (tabObjects.length === 0) {
+            return;
+        }
+        else {
+            try {
+                const groups = await groupTabsByContent(tabObjects.map(tab => ({ title: tab.title, url: tab.url })));
+                const filteredGroups = groups.filter(group => group.length > 1);
+                const groupedTabs = filteredGroups.map(async (group, index) => {
+                    const name = await suggestedGroupName(group);
+                    return {
+                        groupName: name,
+                        tabs: group
+                    };
+                });
+        
+                return await Promise.all(groupedTabs);
+            } catch (error) {
+                throw new Error('Error:', error);
+            }
+        }
+    },
+
     async removeGroup(groupName) {
         const db = await dbPromise; // Ensure you have access to the IndexedDB instance
         const tx = db.transaction(['tabGroups', 'tabs'], 'readwrite'); // Start a transaction that involves both stores
@@ -473,7 +511,6 @@ const operations = {
             throw error; // Throw error so that it can be caught by the message listener
         }
     }
-    */
 }
 
 

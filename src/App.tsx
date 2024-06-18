@@ -25,7 +25,13 @@ function callBackgroundFunction(action, data) {
 }
 
 function App() {
-  const [openDropdown, setOpenDropdown] = useState(null); // Track which dropdown is open
+  const [showAPIKeyAlert, setShowAPIKeyAlert] = useState(false);
+  const [showAPIKeyPrompt, setShowAPIKeyPrompt] = useState(false);
+  const [showAPIKeyStoredMessage, setShowAPIKeyStoredMessage] = useState(false);
+  const [showAPIKeyUsedMessage, setShowAPIKeyUsedMessage] = useState(false);
+  const [groupSource, setGroupSource] = useState(null);
+  const [showGroupOptions, setShowGroupOptions] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [makingGroup, setMakingGroup] = useState(false);
   const [allTabs, setAllTabs] = useState<{title: string | undefined; url: string | undefined, selected: boolean | undefined}[]>([]);
   const [groupName, setGroupName] = useState("");
@@ -41,6 +47,90 @@ function App() {
 
   const toggleDropdown = (index) => {
     setOpenDropdown(prevOpenDropdown => prevOpenDropdown === index ? null : index);
+  };
+
+  const handleShowGroupOptions = () => {
+    setShowGroupOptions(!showGroupOptions);
+  };
+
+  const storeAPIKeyAndProceed = () => {
+    setAPIKey(tempAPIKey);
+    setShowAPIKeyStoredMessage(true);
+    setShowAPIKeyPrompt(false);
+  };
+
+  const validateAPIKey = async (apiKey) => {
+    try {
+      const response = await fetch("https://api.openai.com/v1/engines", {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+      
+      if (response.ok) {
+        console.log("API Key is valid.");
+        return true;
+      } else {
+        console.error("Invalid API Key.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error validating API Key:", error);
+      return false;
+    }
+  };
+  
+  const handleAPIKeySubmit = async () => {
+    const isValid = await validateAPIKey(tempAPIKey);
+    if (isValid) {
+      setAPIKey(tempAPIKey);
+      setShowAPIKeyStoredMessage(true);
+      (storeAPIKeyAndProceed);
+    } else {
+      setShowAPIKeyAlert(true);
+      setTimeout(() => {
+        setShowAPIKeyAlert(false);
+    }, 5000);
+    }
+  };
+
+  async function makeAIGrouping(openTabs) {
+    if (openTabs) {
+      try {
+        const groups = await callBackgroundFunction('getSuggestedOpenTabs', {});
+        setAIGrouping(groups.result);
+      } catch (error) {
+        console.error('Error getting AI group suggestions for open tabs:', error);
+      }
+    } else {
+      try {
+        const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
+        setAIGrouping(groups.result);
+      } catch (error) {
+        console.error('Error getting AI group suggestions for existing groups:', error);
+      }
+    }
+  };
+
+  const initiateGroupingProcess = (groupSource) => {
+    if (APIKey) {
+        if (groupSource) {
+            makeAIGrouping(true);
+        } else {
+            makeAIGrouping(false);
+        }
+        setShowAPIKeyStoredMessage(false);
+        setShowAPIKeyUsedMessage(true);
+        setTimeout(() => {
+            setShowAPIKeyUsedMessage(false);
+            // setAPIKey('');
+        }, 5000);
+    } else {
+      setShowAPIKeyPrompt(true);
+      setTimeout(() => setShowAPIKeyPrompt(false), 5000);
+      console.error("API Key is not set.");
+    }
   };
 
   const getAllTabs = () => {
@@ -62,48 +152,25 @@ function App() {
 
   const addGroup = () => {
     const selectedTabs = allTabs.filter(tab => tab.selected);
-
     callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs })
       .then(() => {
         cancelGroup(),
         getCurrentTabGroups()
       });
-
-    // callBackgroundFunction('createTabGroup', groupName)
-    //   .then(() => {
-    //     callBackgroundFunction('writeTabsToGroup', { groupName: groupName, tabObjects: selectedTabs });
-    //   })
-    //   .then(() => {
-    //     cancelGroup();
-    //     getCurrentTabGroups();
-    //   })
-    //   .catch(error => console.error('Error calling background function:', error));
   };
 
   const newGroupTabSelected = (tab) => {
     setAllTabs(allTabs => allTabs.map(t => {
-      // Check if the current tab in the map is the one clicked
       if (t.title === tab.title && t.url === tab.url) {
-        // Toggle the selected state of the tab
         return { ...t, selected: !t.selected };
       }
-      return t; // Return the tab unchanged if it's not the one clicked
+      return t;
     }));
   };
 
   async function getCurrentTabGroups() {
     const groups = await callBackgroundFunction('getAllGroups', {});
     setTabGroups(groups.result)
-  };
-  
-  async function makeAIGrouping() {
-    if (APIKey == '') {
-      setAIGrouping([{groupName: "No similar groupings found. Create more groups!", tabs: []}]);
-    }
-    else {
-      const groups = await callBackgroundFunction('getSuggestedTabGroups', {});
-      setAIGrouping(groups.result)
-    }
   };
 
   async function saveAIGroups() {
@@ -129,14 +196,11 @@ function App() {
   async function removeGroup(index) {
     const updatedGroups = tabGroups.filter((_, i) => i !== index);
     setTabGroups(updatedGroups);
-    // const result = await callBackgroundFunction('removeGroup', { groupName: tabGroups[index].groupName })
   };
 
 
   const openTabsInNewWindow = (tabs) => {
-    // Collect all URLs from the tabs
     const urls = tabs.map(tab => tab.url);
-    // Use chrome.windows.create to open all tabs in a new window
     chrome.windows.create({ url: urls, focused: true });
   };
 
@@ -154,17 +218,21 @@ function App() {
         } catch (error) {
           console.error('Error calling background function:', error);
         }
-        makeAIGrouping(); 
       }
     };
     updateAPIKeyUsage();
-  }, [APIKey]);  
+  }, [APIKey]);
   
 
   return (
     <div className="App">
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
       <h1 className="title">Focus Tabs</h1>
+      {showAPIKeyStoredMessage && <p>Your API Key is stored.</p>}
+      {showAPIKeyUsedMessage && <p>Your API Key was used.</p>}
+      {showAPIKeyUsedMessage && <p>Please wait a few moments for the AI suggestions.</p>}
+      {showAPIKeyPrompt && (!showAPIKeyStoredMessage) && <p>Please enter your OpenAI API Key to proceed with AI grouping.</p>}
+      {showAPIKeyAlert && <p>The API Key entered is invalid. Please enter a valid API Key.</p>}
       <ul>
         {tabGroups.length > 0 ? (
           tabGroups.map((group, index) => (
@@ -184,6 +252,7 @@ function App() {
           <li>No tab groups available</li>
         )}
       </ul>
+      
       {makingGroup && (
         <div>
           <h2 className="text2">Create Tab Group</h2>
@@ -195,6 +264,7 @@ function App() {
           />
         </div>
       )}
+
       <div className="newtabs-container">
         {allTabs.map(tab => {
           return tab.selected && (
@@ -207,6 +277,7 @@ function App() {
               </button>);
         })}
       </div>
+
       {(makingGroup) && 
         <div className="button-row">
           <button onClick={() => addGroup()} className="addbtn">{"Add Group"}</button>
@@ -214,106 +285,69 @@ function App() {
         </div>
       }
 
-{!makingGroup && aiGrouping.length == 0 &&
-
-<div>
-
-  <button onClick={() => getAllTabs()} className="addbtn">{"Add New Group"}</button>
-
-  <button onClick={() => makeAIGrouping()} className="addbtn">{"AI Tab Grouping"}</button>
-
-</div>
-
-}
-
-{aiGrouping.length > 0 && (APIKey == '') && (
-
-<div>
-
-  <h3>Enter OpenAI API Key</h3>
-
-  <input
-
-      type="text"
-
-      value={APIKey}
-
-      onChange={e => setTempAPIKey(e.target.value)}
-
-      placeholder="Enter API Key"
-
-    />
-
-</div>
-
-)}
-
-{aiGrouping.length > 0 && (APIKey != '') && (
-
-<div>
-
-  <h2 className="text2">AI Tab Grouping Suggestions</h2>
-
-  <ul>
-
-    {aiGrouping.map((group, index) => (
-
-      <li key={index}>
-
-        <div className="ai-group">
-
-          <h2 className="text3">{group.groupName}</h2>
-
-          {/* <button key={index} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
-
-            <i className="material-icons">add</i>
-
-            <i onClick={() => setGroupName(group.groupName || '')}></i>
-
-          </button> */}
-
+      {!makingGroup && aiGrouping.length == 0 &&
+        <div>
+          <button onClick={() => getAllTabs()} className="addbtn">{"Manual Tab Grouping"}</button>
+          <button onClick={handleShowGroupOptions} className="addbtn">{"AI Tab Grouping"}</button>
+          {showGroupOptions && (
+            <div>
+              <button onClick={() => initiateGroupingProcess(true)} className="smallbtn">Based on Open Tabs</button>
+              <button onClick={() => initiateGroupingProcess(false)} className="smallbtn">Based on Existing Groups</button>
+            </div>
+          )}
         </div>
-
-        {group.tabs.map((tab, j) => (
-
-          <div className={"ai-group-link"}>
-
-            <h3 className="text4">{tab.title}</h3>
-
-            {/* <button key={j} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'white'}}>
-
-              <i className="material-icons">close</i>
-
-              <i onClick={() => group.tabs.filter((_, tabIdx) => tabIdx !== j)}></i>
-
-            </button> */}
-
+      }
+      
+      {APIKey === '' && (showGroupOptions) && (
+          <div>
+              <h3>Enter OpenAI API Key</h3>
+              <input
+                  type="text"
+                  value={tempAPIKey}
+                  onChange={e => setTempAPIKey(e.target.value)}
+                  placeholder="Enter API Key"
+              />
+              <button onClick={handleAPIKeySubmit}>Submit API Key</button>
           </div>
+      )}
 
-        ))}
+      {aiGrouping.length > 0 && (APIKey != '') && (
+        <div>
+          <h2 className="text2">AI Tab Grouping Suggestions</h2>
+          <ul>
+            {aiGrouping.map((group, index) => (
 
-      </li>
+              <li key={index}>
+                <div className="ai-group">
+                  <h2 className="text3">{group.groupName}</h2>
+                </div>
 
-    ))}
+                {group.tabs.map((tab, j) => (
+                  <div className={"ai-group-link"}>
+                    <h3 className="text4">{tab.title}</h3>
+                  </div>
+                ))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-  </ul>
-</div>
-)}
+      {(aiGrouping.length > 0) && (APIKey != '') &&
+        <div className="button-row">
+          <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
+          <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
+        </div>
+      }
 
-{(aiGrouping.length > 0) && (APIKey != '') &&
-<div className="button-row">
-  <button onClick={() => saveAIGroups()} className="addbtn">{"Save Groups"}</button>
-  <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
-</div>
-}
-{(aiGrouping.length > 0) && (APIKey == '') &&
-<div className="button-row">
-  <button onClick={() => storeAPIKey()} className="addbtn">{"Save API Key"}</button>
-  <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
-</div>
-}
-</div>
-);
+      {(aiGrouping.length > 0) && (APIKey == '') &&
+        <div className="button-row">
+          <button onClick={() => storeAPIKey()} className="addbtn">{"Load AI Suggestions"}</button>
+          <button onClick={() => cancelGroup()} className="addbtn">{"Cancel"}</button>
+        </div>
+      }
+    </div>
+  );
 }
 
 export default App;
