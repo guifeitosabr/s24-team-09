@@ -510,7 +510,57 @@ const operations = {
             console.error(`Error removing group '${groupName}':`, error);
             throw error; // Throw error so that it can be caught by the message listener
         }
+    },
+
+    async renameGroup(names) {
+        const oldName = names.oldName;
+        const newName = names.newName;
+        console.log(oldName);
+        console.log(newName);
+        const db = await dbPromise;
+    
+        try {
+            const tx = db.transaction(['tabGroups', 'tabs'], 'readwrite');
+            const groupStore = tx.objectStore('tabGroups');
+            const tabStore = tx.objectStore('tabs');
+    
+            // Rename the group in the tabGroups store
+            const group = await groupStore.get(oldName);
+            console.log('group:', group);
+    
+            if (group) {
+                await groupStore.delete(oldName);
+                await groupStore.add({ ...group, name: newName });
+            } else {
+                console.error(`Group with name ${oldName} not found.`);
+                return;
+            }
+    
+            // Fetch all tabs within the same transaction
+            const tabs = await new Promise((resolve, reject) => {
+                const request = tabStore.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+    
+            // Update tabs within the same transaction
+            for (const tab of tabs) {
+                if (tab.group === oldName) {
+                    tab.group = newName;
+                    await tabStore.put(tab);
+                }
+            }
+    
+            await tx.complete;
+            console.log(`Group '${oldName}' renamed to '${newName}' successfully.`);
+        } catch (err) {
+            console.error(`Error renaming group from '${oldName}' to '${newName}':`, err);
+        }
     }
+    
+    
+    
+
 }
 
 

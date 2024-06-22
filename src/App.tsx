@@ -41,6 +41,10 @@ function App() {
   const [APIKey, setAPIKey] = useState('');
   const [tempAPIKey, setTempAPIKey] = useState('');
 
+  const [renamingGroup, setRenamingGroup] = useState(null);
+  const [newGroupName, setNewGroupName] = useState("");
+
+
   useEffect(() => {
     getCurrentTabGroups();
   }, []); 
@@ -204,6 +208,17 @@ function App() {
     chrome.windows.create({ url: urls, focused: true });
   };
 
+  const renameGroup = async (oldName, newName) => {
+    try {
+      await callBackgroundFunction('renameGroup', { oldName, newName });
+      getCurrentTabGroups();
+      setRenamingGroup(null);
+    } catch (error) {
+      console.error('Error renaming group:', error);
+    }
+  };
+  
+
 
   async function storeAPIKey() {
     setAPIKey(tempAPIKey);
@@ -234,23 +249,44 @@ function App() {
       {showAPIKeyPrompt && (!showAPIKeyStoredMessage) && <p>Please enter your OpenAI API Key to proceed with AI grouping.</p>}
       {showAPIKeyAlert && <p>The API Key entered is invalid. Please enter a valid API Key.</p>}
       <ul>
-        {tabGroups.length > 0 ? (
-          tabGroups.map((group, index) => (
-            <li key={index}>
-              <div className="dropdown">
-                <button onClick={() => {
-                  toggleDropdown(index);
-                  openTabsInNewWindow(group.tabs);
-                }} className="dropbtn">{group.groupName}</button>
-                <button onClick={() => removeGroup(index)} className="delete-btn">
-                x
-                </button>
-              </div>
-            </li>
-          ))
-        ) : (
-          <li>No tab groups available</li>
+      {tabGroups.length > 0 ? (
+  tabGroups.map((group, index) => (
+    <li key={index}>
+      <div className="dropdown">
+        <button
+          onClick={() => {
+            toggleDropdown(index);
+            openTabsInNewWindow(group.tabs);
+          }}
+          className="dropbtn"
+        >
+          {group.groupName}
+        </button>
+        <button onClick={() => removeGroup(index)} className="delete-btn">
+          x
+        </button>
+        <button onClick={() => setRenamingGroup(index)} className="rename-btn">
+          Rename
+        </button>
+        {renamingGroup === index && (
+          <div className="rename-container">
+            <input
+              type="text"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              placeholder="New group name"
+            />
+            <button onClick={() => renameGroup(group.groupName, newGroupName)}>Save</button>
+            <button onClick={() => setRenamingGroup(null)}>Cancel</button>
+          </div>
         )}
+      </div>
+    </li>
+  ))
+) : (
+  <li>No tab groups available</li>
+)}
+
       </ul>
       
       {makingGroup && (

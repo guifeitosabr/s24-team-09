@@ -23,22 +23,20 @@
   max-width: 200px;     /* New maximum width */
 }
 
-
 .container {
-width: 400px;
-padding: 1rem;
-background-color: #202020; /* Slightly lighter background for the container */
-border-radius: 8px; /* Rounded corners for the container */
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-list-style-type: none;
+  width: 400px;
+  padding: 1rem;
+  background-color: #202020; /* Slightly lighter background for the container */
+  border-radius: 8px; /* Rounded corners for the container */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  list-style-type: none;
 }
 
 .title {
-font-size: 32px;
-color: #f0f0f0; /* Slightly off-white color for better readability */
-font-weight: bold;
+  font-size: 32px;
+  color: #f0f0f0; /* Slightly off-white color for better readability */
+  font-weight: bold;
 }
-
 
 .text2 {
   font-size: 24px;
@@ -53,22 +51,22 @@ font-weight: bold;
 }
 
 .text4 {
-  font-size: 14x;
+  font-size: 14px;
   color: #F0F0F0;
   font-weight: normal;
 }
 
 /* General button styles for uniformity */
 .button, .dropbtn, .regAddTabBtn, .outlineAddTabBtn, .addbtn {
-padding: 10px 15px; /* Consistent padding */
-min-width: 120px; /* Minimum width for all buttons */
-font-size: 16px; /* Consistent font size */
-text-align: center; /* Center text */
-border: none; /* Remove borders */
-color: #ffffff; /* White text */
-border-radius: 5px; /* Rounded corners */
-margin: 0 5px; /* Horizontal margin to avoid touching */
-cursor: pointer; /* Pointer cursor on hover */
+  padding: 10px 15px; /* Consistent padding */
+  min-width: 120px; /* Minimum width for all buttons */
+  font-size: 16px; /* Consistent font size */
+  text-align: center; /* Center text */
+  border: none; /* Remove borders */
+  color: #ffffff; /* White text */
+  border-radius: 5px; /* Rounded corners */
+  margin: 0 5px; /* Horizontal margin to avoid touching */
+  cursor: pointer; /* Pointer cursor on hover */
 }
 
 .smallbtn {
@@ -83,57 +81,58 @@ cursor: pointer; /* Pointer cursor on hover */
 }
 
 .dropdown-content {
-display: none;
-position: absolute;
-background-color: #f9f9f9;
-min-width: 160px;
-box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-z-index: 1;
-border-radius: 5px; /* Rounded corners for dropdown */
-margin-top: 25px; /* Small space between the dropdown button and the content */
-list-style-type: none;
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 5px; /* Rounded corners for dropdown */
+  margin-top: 25px; /* Small space between the dropdown button and the content */
+  list-style-type: none;
 }
 
 .dropdown-content a {
-color: black;
-padding: 12px 16px;
-text-decoration: none;
-display: block;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
 }
 
-.dropdown-content a:hover {background-color: #f1f1f1}
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
 
 /* Specific styles for different button types */
 .dropbtn {
-background-color: #0511ff;
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  background-color: #0511ff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
 }
 
 .regAddTabBtn, .outlineAddTabBtn {
-background-color: #262626; /* Darker background for regular buttons */
+  background-color: #262626; /* Darker background for regular buttons */
 }
 
 .outlineAddTabBtn {
-border: 2px solid #0077b6; /* Blue border for outline button */
+  border: 2px solid #0077b6; /* Blue border for outline button */
 }
 
 .addbtn {
-background-color: #023e8a; /* Blue background for add button */
+  background-color: #023e8a; /* Blue background for add button */
 }
 
 /* Container holding buttons */
 .button-row, .newtabs-container {
-display: flex;
-flex-wrap: wrap;
-justify-content: center; /* Center buttons horizontally */
-align-items: center; /* Align buttons vertically */
-gap: 20px; /* Space between buttons */
-list-style-type: none;
-margin: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center buttons horizontally */
+  align-items: center; /* Align buttons vertically */
+  gap: 20px; /* Space between buttons */
+  list-style-type: none;
+  margin: 20px;
 }
 
-
-/* delete button stuff */
+/* Delete button styles */
 .delete-btn {
   padding: 5px 8px;      
   font-size: 16px;      
@@ -150,4 +149,34 @@ margin: 20px;
 
 .delete-btn:hover {
   background-color: darkred; /* Darker red on hover for feedback */
+}
+
+/* Styles for renaming functionality */
+.rename-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rename-group input {
+  margin-right: 10px;
+  flex-grow: 1;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-inner {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
 }
