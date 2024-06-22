@@ -5,7 +5,7 @@ FocusTabs is a Chrome extension designed to enhance productivity by helping user
 ## Key Features:
 1. Manual Grouping: Users can manually create and manage groups to organize their tabs according to their workflow or interests.
 2. Automatic Grouping: Leveraging OpenAI's API, FocusTabs offers an automatic grouping feature that intelligently categorizes tabs based on the keywords found in their title. This saves users time and effort in organizing their tabs, especially when dealing with a large number of open tabs.
-3. Customization: Users have the flexibility to customize group names, colors, and other settings to suit their preferences and browsing habits.
+3. Customization: Users have the flexibility to rename and delete tab groups to suit their preferences and browsing habits.
 4. Performance Optimization: The extension is designed to be lightweight and efficient, minimizing impact on browser performance.
 
 ## Installation
@@ -23,7 +23,7 @@ FocusTabs is a Chrome extension designed to enhance productivity by helping user
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/jlumbroso/chrome-extension-text-collector
+   git clone https://github.com/guifeitosabr/s24-team-09.git
    ```
 
 2. Install dependencies:
